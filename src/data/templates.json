@@ -1,0 +1,24 @@
+{
+    "templates": [
+        {
+            "id": "template_none",
+            "name": "None",
+            "alignment": ""
+        },
+        {
+            "id": "template_left",
+            "name": "Left",
+            "alignment": "LEFT"
+        },
+        {
+            "id": "template_center",
+            "name": "Center",
+            "alignment": "CENTER"
+        },
+        {
+            "id": "template_right",
+            "name": "Right",
+            "alignment": "RIGHT"
+        }
+    ]
+}
