@@ -117,6 +117,11 @@ export const undoRedo: UndoRedo =
     }
 
     // Wrap the original set function to track history
+    // Note: Using 'any' here is unavoidable due to Zustand's complex middleware type system.
+    // The middleware API has deeply nested generic types with multiple overload signatures
+    // that cannot be properly expressed without 'any'. This is a known limitation when
+    // creating custom Zustand middlewares.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const wrappedSet = (partial: any, replace?: boolean | undefined) => {
       const { past, future } = get() as unknown as UndoRedoState
       const current = getCurrentState(get())
@@ -125,8 +130,12 @@ export const undoRedo: UndoRedo =
       if (!equality(current, partial)) {
         const newPast = [...past, current].slice(-limit)
 
+        // Call original set with the partial update
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(set as any)(partial, replace ?? false)
 
+        // Update history state
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(set as any)(
           {
             past: newPast,
@@ -134,13 +143,15 @@ export const undoRedo: UndoRedo =
             canUndo: true,
             canRedo: false,
           } as Partial<ReturnType<typeof get>>,
-          false  // ← Changed to false to merge instead of replace
+          false // ← Changed to false to merge instead of replace
         )
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(set as any)(partial, replace ?? false)
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const initialState = config(wrappedSet as any, get as any, api)
 
     return {

@@ -15,6 +15,7 @@ import {
     DragOverEvent,
     SensorDescriptor,
     SensorOptions,
+    CollisionDetection,
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { GridRow } from '@/components/grid/GridRow'
@@ -55,7 +56,7 @@ export const GridRowList = React.memo(
     }: GridRowListProps) => {
         // Custom collision detection that prioritizes pointer position
         // This works better with multiple rows by checking exact pointer location first
-        const customCollisionDetection = (args: any) => {
+        const customCollisionDetection: CollisionDetection = (args) => {
             // First try pointerWithin - most accurate for user intent
             const pointerCollisions = pointerWithin(args)
             if (pointerCollisions.length > 0) {

@@ -43,7 +43,7 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
         })
     )
 
-    function handleDragStart(event: DragStartEvent) {
+    function handleDragStart(event: DragStartEvent): void {
         console.log('🔵 [DRAG] handleDragStart:', {
             activeId: event.active.id,
             data: event.active.data.current,
@@ -51,11 +51,11 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
         setActiveId(event.active.id as string)
     }
 
-    function handleDragOver(event: DragOverEvent) {
+    function handleDragOver(event: DragOverEvent): void {
         // Handle drag over logic if needed
     }
 
-    function handleDragEnd(event: DragEndEvent) {
+    function handleDragEnd(event: DragEndEvent): void {
         const { active, over } = event
 
         console.log('🟢 [DRAG] handleDragEnd:', {
@@ -108,13 +108,13 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
             // Check if dropped on another product (format: "rowId-productId")
             else {
                 // Try to get rowId from over.data first (more reliable)
-                const overData = over?.data.current as any
-                if (overData?.sourceRowId) {
+                const overData = over?.data.current as TDragData | undefined
+                if (overData && overData.type === 'PRODUCT' && overData.sourceRowId) {
                     targetRowId = overData.sourceRowId
 
                     // Find target row to get the index
                     const targetRow = rows.find((r) => r.id === targetRowId)
-                    if (targetRow && overData?.productId) {
+                    if (targetRow && overData.productId) {
                         targetIndex = targetRow.productIds.indexOf(overData.productId)
                     }
 
@@ -217,7 +217,7 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
         setActiveId(null)
     }
 
-    function handleDragCancel() {
+    function handleDragCancel(): void {
         setActiveId(null)
     }
 
