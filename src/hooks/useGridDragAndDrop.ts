@@ -2,15 +2,41 @@
  * useGridDragAndDrop Hook
  * Handles all drag-and-drop logic for rows and products
  */
-import { useState } from 'react'
-import { useSensors, useSensor, PointerSensor, KeyboardSensor } from '@dnd-kit/core'
+import { useState, useCallback, useRef } from 'react'
+import {
+    useSensors,
+    useSensor,
+    PointerSensor,
+    KeyboardSensor,
+} from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { useGridStore } from '@/lib/store'
+import { useGridStore, useUIStore } from '@/lib/store'
 import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
-import type { TDragData } from '@/types'
+import type { TDragData, IProduct } from '@/types'
+
+// Maximum products allowed per row
+const MAX_PRODUCTS_PER_ROW = 3
+
+/**
+ * Active drag item data
+ */
+interface ActiveDragItem {
+    id: string
+    type: 'PRODUCT' | 'ROW'
+    product?: IProduct
+    rowId?: string
+    // For ROW type
+    rowData?: {
+        row: any
+        products: IProduct[]
+        index: number
+    }
+}
 
 interface UseGridDragAndDropReturn {
     activeId: string | null
+    activeItem: ActiveDragItem | null
+    overId: string | null // Current element being hovered over
     sensors: ReturnType<typeof useSensors>
     handleDragStart: (event: DragStartEvent) => void
     handleDragOver: (event: DragOverEvent) => void
@@ -20,9 +46,13 @@ interface UseGridDragAndDropReturn {
 
 export function useGridDragAndDrop(): UseGridDragAndDropReturn {
     const [activeId, setActiveId] = useState<string | null>(null)
+    const [activeItem, setActiveItem] = useState<ActiveDragItem | null>(null)
+    const [overId, setOverId] = useState<string | null>(null) // Track what we're hovering over
+    const dragOverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     // Grid store
     const rows = useGridStore((state) => state.rows)
+    const products = useGridStore((state) => state.products)
     const moveRow = useGridStore((state) => state.moveRow)
     const moveProductBetweenRows = useGridStore(
         (state) => state.moveProductBetweenRows
@@ -30,6 +60,9 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
     const moveProductWithinRow = useGridStore(
         (state) => state.moveProductWithinRow
     )
+
+    // UI store for toasts
+    const addToast = useUIStore((state) => state.addToast)
 
     // Drag and drop sensors
     const sensors = useSensors(
@@ -43,16 +76,60 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
         })
     )
 
-    function handleDragStart(event: DragStartEvent): void {
+    function handleDragStart(event: DragStartEvent) {
+        const activeData = event.active.data.current as TDragData
+
         console.log('🔵 [DRAG] handleDragStart:', {
             activeId: event.active.id,
-            data: event.active.data.current,
+            data: activeData,
         })
+
         setActiveId(event.active.id as string)
+
+        // Capture active item data for DragOverlay
+        if (activeData.type === 'PRODUCT') {
+            const product = products[activeData.productId]
+            setActiveItem({
+                id: event.active.id as string,
+                type: 'PRODUCT',
+                product,
+                rowId: activeData.sourceRowId,
+            })
+        } else if (activeData.type === 'ROW') {
+            // Capture complete row data including all products
+            const row = rows.find((r) => r.id === activeData.rowId)
+            if (row) {
+                const rowProducts = row.productIds
+                    .map((productId) => products[productId])
+                    .filter(Boolean) as IProduct[]
+
+                setActiveItem({
+                    id: event.active.id as string,
+                    type: 'ROW',
+                    rowData: {
+                        row,
+                        products: rowProducts,
+                        index: activeData.sourceIndex || 0,
+                    },
+                })
+            } else {
+                setActiveItem({
+                    id: event.active.id as string,
+                    type: 'ROW',
+                })
+            }
+        }
     }
 
     function handleDragOver(event: DragOverEvent): void {
-        // Handle drag over logic if needed
+        const { over } = event
+
+        // Track what element we're hovering over (including disabled droppables)
+        if (over) {
+            setOverId(over.id as string)
+        } else {
+            setOverId(null)
+        }
     }
 
     function handleDragEnd(event: DragEndEvent): void {
@@ -109,13 +186,19 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
             else {
                 // Try to get rowId from over.data first (more reliable)
                 const overData = over?.data.current as TDragData | undefined
-                if (overData && overData.type === 'PRODUCT' && overData.sourceRowId) {
+                if (
+                    overData &&
+                    overData.type === 'PRODUCT' &&
+                    overData.sourceRowId
+                ) {
                     targetRowId = overData.sourceRowId
 
                     // Find target row to get the index
                     const targetRow = rows.find((r) => r.id === targetRowId)
                     if (targetRow && overData.productId) {
-                        targetIndex = targetRow.productIds.indexOf(overData.productId)
+                        targetIndex = targetRow.productIds.indexOf(
+                            overData.productId
+                        )
                     }
 
                     console.log('🟡 [DRAG] Dropped on product (using data):', {
@@ -136,13 +219,17 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
                     // Find target row to get the index
                     const targetRow = rows.find((r) => r.id === targetRowId)
                     if (targetRow) {
-                        targetIndex = targetRow.productIds.indexOf(overProductId)
+                        targetIndex =
+                            targetRow.productIds.indexOf(overProductId)
                     }
-                    console.log('🟡 [DRAG] Dropped on product (parsed from ID):', {
-                        rowId,
-                        overProductId,
-                        targetIndex,
-                    })
+                    console.log(
+                        '🟡 [DRAG] Dropped on product (parsed from ID):',
+                        {
+                            rowId,
+                            overProductId,
+                            targetIndex,
+                        }
+                    )
                 }
             }
 
@@ -192,8 +279,22 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
                     console.log('🔴 [DRAG] Indices are the same, no action')
                 }
             }
-            // Different row - move between rows (with overflow handling)
+            // Different row - move between rows
             else {
+                // ✅ STRICT DROP BLOCKING: Check if target row is full
+                const isTargetRowFull = targetRow.productIds.length >= MAX_PRODUCTS_PER_ROW
+
+                if (isTargetRowFull) {
+                    console.log('🚫 [DRAG] Target row is full, DROP BLOCKED')
+                    addToast({
+                        type: 'error',
+                        message: 'Cannot drop! Row is full (3 products max).',
+                    })
+                    setActiveId(null)
+                    setActiveItem(null)
+                    return // 🛑 Block the operation
+                }
+
                 // If targetIndex is -1, add to end
                 if (targetIndex === -1) {
                     targetIndex = targetRow.productIds.length
@@ -215,14 +316,30 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
         }
 
         setActiveId(null)
+        setActiveItem(null)
+        setOverId(null) // Clear hover state
+
+        // Clear drag over timeout
+        if (dragOverTimeoutRef.current) {
+            clearTimeout(dragOverTimeoutRef.current)
+        }
     }
 
     function handleDragCancel(): void {
         setActiveId(null)
+        setActiveItem(null)
+        setOverId(null) // Clear hover state
+
+        // Clear drag over timeout
+        if (dragOverTimeoutRef.current) {
+            clearTimeout(dragOverTimeoutRef.current)
+        }
     }
 
     return {
         activeId,
+        activeItem,
+        overId, // Expose overId to GridEditor
         sensors,
         handleDragStart,
         handleDragOver,

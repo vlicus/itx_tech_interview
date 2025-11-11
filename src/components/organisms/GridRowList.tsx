@@ -19,8 +19,83 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { GridRow } from '@/components/grid/GridRow'
+import { ProductCard } from '@/components/product/ProductCard'
 import { EmptyGridMessage } from '@/components/molecules'
-import type { IGridRow } from '@/types'
+import { Card, CardBody, CardHeader, Chip, Button } from '@heroui/react'
+import { Icon } from '@iconify/react'
+import { cn } from '@/utils'
+import { useGridStore } from '@/lib/store'
+import type { IGridRow, IProduct } from '@/types'
+
+/**
+ * Active drag item data
+ */
+interface ActiveDragItem {
+    id: string
+    type: 'PRODUCT' | 'ROW'
+    product?: IProduct
+    rowId?: string
+    // For ROW type
+    rowData?: {
+        row: IGridRow
+        products: IProduct[]
+        index: number
+    }
+}
+
+/**
+ * RowDragGhost - Visual representation of a row being dragged
+ */
+const RowDragGhost = React.memo(
+    ({ row, products, index }: { row: IGridRow; products: IProduct[]; index: number }) => {
+        return (
+            <div className="w-full max-w-7xl opacity-100">
+                <Card className="w-full shadow-2xl ring-4 ring-primary-500">
+                    <CardHeader className="flex flex-row items-center justify-between gap-2 px-6 py-4 border-b bg-linear-to-r from-primary-100 to-primary-50 border-primary-300">
+                        <div className="flex items-center gap-3">
+                            <Chip size="sm" variant="flat" color="primary">
+                                Row {index + 1} - Moving...
+                            </Chip>
+                            <span className="text-sm text-default-600">
+                                {products.length} {products.length === 1 ? 'product' : 'products'}
+                            </span>
+                        </div>
+                    </CardHeader>
+                    <CardBody className="p-6 bg-white/95 backdrop-blur-sm">
+                        <div className="flex flex-wrap gap-4 justify-center">
+                            {products.map((product) => (
+                                <div
+                                    key={product.id}
+                                    className="w-[200px] opacity-90"
+                                >
+                                    <Card className="w-full shadow-md">
+                                        <CardBody className="p-0">
+                                            <img
+                                                src={product.imageUrl}
+                                                alt={product.name}
+                                                className="w-full object-cover aspect-[2/3]"
+                                            />
+                                        </CardBody>
+                                        <div className="p-3 flex flex-col gap-1">
+                                            <h3 className="text-sm font-medium line-clamp-1">
+                                                {product.name}
+                                            </h3>
+                                            <p className="text-sm font-semibold text-primary">
+                                                {product.price}
+                                            </p>
+                                        </div>
+                                    </Card>
+                                </div>
+                            ))}
+                        </div>
+                    </CardBody>
+                </Card>
+            </div>
+        )
+    }
+)
+
+RowDragGhost.displayName = 'RowDragGhost'
 
 interface GridRowListProps {
     rows: IGridRow[]
@@ -34,6 +109,8 @@ interface GridRowListProps {
     onDragEnd: (event: DragEndEvent) => void
     onDragCancel: () => void
     activeId: string | null
+    activeItem: ActiveDragItem | null
+    overId: string | null // Element being hovered over during drag
     zoomLevel: number
     gridRef: React.RefObject<HTMLDivElement | null>
 }
@@ -51,9 +128,14 @@ export const GridRowList = React.memo(
         onDragEnd,
         onDragCancel,
         activeId,
+        activeItem,
+        overId, // Element being hovered over
         zoomLevel,
         gridRef,
     }: GridRowListProps) => {
+        // Get addRow action from store
+        const addRow = useGridStore((state) => state.addRow)
+
         // Custom collision detection that prioritizes pointer position
         // This works better with multiple rows by checking exact pointer location first
         const customCollisionDetection: CollisionDetection = (args) => {
@@ -110,6 +192,7 @@ export const GridRowList = React.memo(
                                         index={index}
                                         isSelected={selectedRowId === row.id}
                                         onSelect={() => onSelectRow(row.id)}
+                                        overId={overId} // Pass overId for manual hover detection
                                         validationErrors={
                                             showValidationErrors &&
                                             errorsByRow[row.id]
@@ -123,20 +206,51 @@ export const GridRowList = React.memo(
                             </div>
                         </SortableContext>
 
+                        {/* Add Empty Row Button - Always visible */}
+                        <div className="mt-6 flex justify-center">
+                            <Button
+                                onPress={addRow}
+                                size="lg"
+                                variant="bordered"
+                                className="text-primary border-primary hover:bg-primary-50 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg"
+                                startContent={
+                                    <Icon
+                                        icon="akar-icons:plus"
+                                        className="w-5 h-5"
+                                    />
+                                }
+                            >
+                                Add Empty Row
+                            </Button>
+                        </div>
+
                         {/* Empty state */}
                         {rows.length === 0 && <EmptyGridMessage />}
                     </div>
 
                     {/* DragOverlay - Outside blur effect, always crisp */}
-                    <DragOverlay dropAnimation={null}>
-                        {activeId ? (
-                            <div className="opacity-100 shadow-2xl ring-4 ring-primary-500 rotate-2 scale-110 transition-all duration-200 filter-none backdrop-blur-none">
-                                <div className="bg-linear-to-br from-primary-100 to-primary-200 rounded-xl px-5 py-4 border-2 border-primary-400 shadow-xl">
-                                    <span className="text-base font-bold text-primary-900 flex items-center gap-2">
-                                        <span className="text-xl">✋</span>
-                                        <span>Dragging...</span>
-                                    </span>
-                                </div>
+                    <DragOverlay
+                        dropAnimation={{
+                            duration: 200,
+                            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+                        }}
+                    >
+                        {activeItem && activeItem.type === 'PRODUCT' && activeItem.product ? (
+                            <div className="opacity-100 shadow-2xl rotate-3 scale-110 transition-all duration-200 filter-none backdrop-blur-none cursor-grabbing">
+                                <ProductCard
+                                    product={activeItem.product}
+                                    rowId={activeItem.rowId || 'overlay'}
+                                    index={-1}
+                                    isDragging={true}
+                                />
+                            </div>
+                        ) : activeItem && activeItem.type === 'ROW' && activeItem.rowData ? (
+                            <div className="opacity-100 scale-105 transition-all duration-200 filter-none backdrop-blur-none cursor-grabbing">
+                                <RowDragGhost
+                                    row={activeItem.rowData.row}
+                                    products={activeItem.rowData.products}
+                                    index={activeItem.rowData.index}
+                                />
                             </div>
                         ) : null}
                     </DragOverlay>

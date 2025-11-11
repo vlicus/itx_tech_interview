@@ -10,7 +10,7 @@
  * Si no se proporciona 'ids', retorna todos los productos.
  */
 
-import { IProduct } from '@/types'
+import { IProduct, IGetProductsResponse } from '@/types'
 import { NextRequest, NextResponse } from 'next/server'
 import productsData from '@/data/products.json'
 
@@ -23,19 +23,28 @@ export async function GET(request: NextRequest) {
         // Cargar todos los productos desde el archivo JSON
         const allProducts = productsData.products as IProduct[]
 
+        let products: IProduct[]
+
         // Si se proporciona filtro de IDs, filtrar productos
         if (idsParam) {
             console.log('Filtering products by IDs:', idsParam)
             const requestedIds = idsParam.split(',').map((id) => id.trim())
-            const filteredProducts = allProducts.filter((product) =>
+            products = allProducts.filter((product) =>
                 requestedIds.includes(product.id)
             )
-
-            return NextResponse.json(filteredProducts, { status: 200 })
+        } else {
+            // Si no hay filtro, retornar todos los productos
+            products = allProducts
         }
 
-        // Si no hay filtro, retornar todos los productos
-        return NextResponse.json(allProducts, { status: 200 })
+        const response: IGetProductsResponse = { products }
+
+        return NextResponse.json(response, {
+            status: 200,
+            headers: {
+                'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate',
+            },
+        })
     } catch (error) {
         console.error('Error loading products:', error)
         return NextResponse.json(

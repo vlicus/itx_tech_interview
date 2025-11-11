@@ -43,6 +43,8 @@ export function GridEditor() {
     // Custom hook for drag and drop functionality
     const {
         activeId,
+        activeItem,
+        overId, // Track what element is being hovered over
         sensors,
         handleDragStart,
         handleDragOver,
@@ -50,16 +52,13 @@ export function GridEditor() {
         handleDragCancel,
     } = useGridDragAndDrop()
 
-    // Custom hook for grid operations (save, undo, redo, validation)
+    // Custom hook for grid operations (save, validation)
     const {
         gridRef,
         handleSave,
-        undo,
-        redo,
-        canUndo,
-        canRedo,
         validation,
         errorsByRow,
+        hasUnsavedChanges,
     } = useGridOperations(hydrated, isLoading)
 
     // Show loading while hydrating or loading data
@@ -77,13 +76,10 @@ export function GridEditor() {
             <GridToolbar
                 rowCount={rows.length}
                 productCount={Object.keys(products).length}
-                onUndo={undo}
-                onRedo={redo}
-                canUndo={canUndo}
-                canRedo={canRedo}
                 onSave={handleSave}
                 isSaving={isSaving}
                 isValid={validation.isValid}
+                hasUnsavedChanges={hasUnsavedChanges}
             />
 
             {/* Grid Area - Now using organism component */}
@@ -99,6 +95,8 @@ export function GridEditor() {
                 onDragEnd={handleDragEnd}
                 onDragCancel={handleDragCancel}
                 activeId={activeId}
+                activeItem={activeItem}
+                overId={overId} // Pass overId to GridRowList
                 zoomLevel={zoomLevel}
                 gridRef={gridRef}
             />

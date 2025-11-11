@@ -4,7 +4,7 @@
  * Retorna todas las plantillas disponibles desde datos locales.
  */
 
-import { ITemplate } from '@/types'
+import { ITemplate, IGetTemplatesResponse } from '@/types'
 import { NextResponse } from 'next/server'
 import templatesData from '@/data/templates.json'
 
@@ -13,7 +13,14 @@ export async function GET() {
         // Cargar templates desde el archivo JSON
         const templates = templatesData.templates as ITemplate[]
 
-        return NextResponse.json(templates, { status: 200 })
+        const response: IGetTemplatesResponse = { templates }
+
+        return NextResponse.json(response, {
+            status: 200,
+            headers: {
+                'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate',
+            },
+        })
     } catch (error) {
         console.error('Error loading templates:', error)
         return NextResponse.json(

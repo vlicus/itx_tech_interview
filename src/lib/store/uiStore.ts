@@ -27,16 +27,21 @@ interface IUIActions {
   // Validation
   setShowValidationErrors: (show: boolean) => void
 
+  // Unsaved changes tracking
+  setHasUnsavedChanges: (hasChanges: boolean) => void
+  markAsSaved: () => void
+
   // Toast notifications
   addToast: (toast: Omit<IToast, 'id'>) => void
   removeToast: (id: string) => void
 }
 
 /**
- * Extended UI state with toasts
+ * Extended UI state with toasts and unsaved changes
  */
 interface IExtendedUIState extends IUIState {
   toasts: IToast[]
+  hasUnsavedChanges: boolean
 }
 
 /**
@@ -62,6 +67,7 @@ const initialState: IExtendedUIState = {
   error: null,
   showValidationErrors: false,
   toasts: [],
+  hasUnsavedChanges: false,
 }
 
 /**
@@ -119,6 +125,17 @@ export const useUIStore = create<TUIStore>((set, get) => ({
   setShowValidationErrors: (show) =>
     set({
       showValidationErrors: show,
+    }),
+
+  // Unsaved changes tracking
+  setHasUnsavedChanges: (hasChanges) =>
+    set({
+      hasUnsavedChanges: hasChanges,
+    }),
+
+  markAsSaved: () =>
+    set({
+      hasUnsavedChanges: false,
     }),
 
   // Toast notifications

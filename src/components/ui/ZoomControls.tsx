@@ -51,7 +51,7 @@ export function ZoomControls() {
                         onPress={zoomOut}
                         isDisabled={zoomLevel <= 0.5}
                         aria-label="Zoom out"
-                        size="sm"
+                        size="md"
                         variant="flat"
                         className="rounded-none border-r border-neutral-200 hover:bg-neutral-100 transition-colors duration-200 flex items-center"
                     >
@@ -67,7 +67,7 @@ export function ZoomControls() {
                         onPress={resetZoom}
                         className="min-w-[60px] rounded-none border-r border-neutral-200 hover:bg-neutral-100 transition-colors duration-200 font-medium text-neutral-700 "
                         aria-label="Reset zoom"
-                        size="sm"
+                        size="md"
                         variant="flat"
                     >
                         {zoomPercentage}%

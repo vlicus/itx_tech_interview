@@ -5,6 +5,7 @@
  * Represents a row in the product grid with drag-and-drop support
  */
 
+import { useMemo, useRef, useCallback, useEffect } from 'react'
 import { useSortable, SortableContext } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
@@ -21,6 +22,7 @@ interface GridRowProps {
     index: number
     isSelected: boolean
     onSelect: () => void
+    overId: string | null // Element being hovered over during drag
     validationErrors?: string[]
 }
 
@@ -29,6 +31,7 @@ export function GridRow({
     index,
     isSelected,
     onSelect,
+    overId, // Element being hovered over during drag
     validationErrors = [],
 }: GridRowProps) {
     const products = useGridStore((state) => state.products)
@@ -39,6 +42,54 @@ export function GridRow({
     const getTemplateById = useTemplateStore((state) => state.getTemplateById)
 
     const template = row.templateId ? getTemplateById(row.templateId) : null
+
+    // Refs for throttling drag over events
+    const dragOverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const lastDragOverTimeRef = useRef<number>(0)
+
+    // Memoized check for row capacity (prevents blink on re-renders)
+    const rowProductCount = useMemo(
+        () => row.productIds.length,
+        [row.productIds.length]
+    )
+
+    // ✅ STRICT DROP BLOCKING: Only allow drop if row has less than 3 products
+    const canAcceptDrop = useMemo(() => rowProductCount < 3, [rowProductCount])
+
+    // Check if row is full (for negative feedback)
+    const isRowFull = useMemo(() => rowProductCount >= 3, [rowProductCount])
+
+    // Throttled drag over handler - prevents excessive re-renders
+    const handleDragOverThrottled = useCallback((event: React.DragEvent) => {
+        const now = Date.now()
+        const timeSinceLastCall = now - lastDragOverTimeRef.current
+
+        // Throttle to 50ms intervals
+        if (timeSinceLastCall >= 50) {
+            lastDragOverTimeRef.current = now
+            event.preventDefault()
+        } else {
+            // Clear existing timeout
+            if (dragOverTimeoutRef.current) {
+                clearTimeout(dragOverTimeoutRef.current)
+            }
+
+            // Schedule for next interval
+            dragOverTimeoutRef.current = setTimeout(() => {
+                lastDragOverTimeRef.current = Date.now()
+                event.preventDefault()
+            }, 50 - timeSinceLastCall)
+        }
+    }, [])
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (dragOverTimeoutRef.current) {
+                clearTimeout(dragOverTimeoutRef.current)
+            }
+        }
+    }, [])
 
     // Sortable for the entire row
     const {
@@ -57,13 +108,21 @@ export function GridRow({
         },
     })
 
-    // Droppable for products
-    const { setNodeRef: setDropRef, isOver } = useDroppable({
-        id: `droppable-${row.id}`,
-        data: {
+    // Droppable for products with stable data object
+    const dropData = useMemo(
+        () => ({
             rowId: row.id,
             accepts: 'PRODUCT',
-        },
+            canAcceptDrop,
+            currentCount: rowProductCount,
+        }),
+        [row.id, canAcceptDrop, rowProductCount]
+    )
+
+    const { setNodeRef: setDropRef, isOver } = useDroppable({
+        id: `droppable-${row.id}`,
+        data: dropData,
+        disabled: !canAcceptDrop, // ✅ Disable drop if row is full
     })
 
     const rowStyle = {
@@ -82,18 +141,43 @@ export function GridRow({
 
     const hasErrors = validationErrors.length > 0
 
-    // Calculate alignment class based on template
-    // - If no template: use default RIGHT (justify-end)
-    // - If template with no explicit alignment: use neutral (justify-start)
-    // - Otherwise: use template's alignment
-    const alignmentMap: Record<string, string> = {
-        LEFT: 'justify-start',
-        CENTER: 'justify-center',
-        RIGHT: 'justify-end',
-    }
-    const alignmentClass = template
-        ? alignmentMap[template.alignment as string] ?? 'justify-start'
-        : 'justify-end' // Default: Derecha (RIGHT) when no template initially
+    // Check if we're hovering over THIS row's droppable area
+    // (overId tracks hover even when droppable is disabled)
+    const isHoveringThisRow = useMemo(() => {
+        if (!overId) return false
+        // Check if overId matches this row's droppable ID
+        return overId === `droppable-${row.id}`
+    }, [overId, row.id])
+
+    // Memoized hover state calculation (prevents blink on full rows)
+    const isHovered = useMemo(
+        () => isOver || isHoveringThisRow,
+        [isOver, isHoveringThisRow]
+    )
+
+    // Calculate if this is a blocked hover (hovering over full row)
+    const isBlockedHover = useMemo(
+        () => isHoveringThisRow && isRowFull,
+        [isHoveringThisRow, isRowFull]
+    )
+
+    // Calculate if this is a valid hover (hovering over available row)
+    const isValidHover = useMemo(
+        () => isHoveringThisRow && !isRowFull,
+        [isHoveringThisRow, isRowFull]
+    )
+
+    // Calculate alignment class based on template (memoized)
+    const alignmentClass = useMemo(() => {
+        const alignmentMap: Record<string, string> = {
+            LEFT: 'justify-start',
+            CENTER: 'justify-center',
+            RIGHT: 'justify-end',
+        }
+        return template
+            ? alignmentMap[template.alignment as string] ?? 'justify-start'
+            : 'justify-end' // Default: Derecha (RIGHT) when no template initially
+    }, [template])
 
     return (
         <div
@@ -109,38 +193,99 @@ export function GridRow({
                     'w-full transition-all duration-200 shadow-lg hover:shadow-xl',
                     isSelected && 'ring-2 ring-primary shadow-primary/20',
                     hasErrors && 'ring-2 ring-danger shadow-danger/20',
-                    isOver &&
-                        'ring-4 ring-success-500 shadow-success/30 scale-[1.01] bg-success-50/30'
+                    // ✅ Valid hover: Green feedback
+                    isValidHover &&
+                        'ring-4 ring-success-500 shadow-success/30 scale-[1.01] bg-success-50/30',
+                    // 🚫 Blocked hover: Red/gray negative feedback
+                    isBlockedHover &&
+                        'ring-4 ring-danger-500 shadow-danger/30 bg-danger-50/20 cursor-not-allowed'
                 )}
             >
                 <CardHeader
                     className={cn(
                         'flex flex-row items-center justify-between gap-2 px-6 py-4 border-b transition-all duration-200',
-                        isOver
-                            ? 'bg-linear-to-r from-success-100 to-success-50 border-success-300'
-                            : 'bg-linear-to-r from-default-50 to-default-100/50 border-default-200'
+                        // ✅ Valid hover: Green header
+                        isValidHover &&
+                            'bg-linear-to-r from-success-100 to-success-50 border-success-300',
+                        // 🚫 Blocked hover: Red header
+                        isBlockedHover &&
+                            'bg-linear-to-r from-danger-100 to-danger-50 border-danger-300',
+                        // Default: Gray header
+                        !isHovered &&
+                            'bg-linear-to-r from-default-50 to-default-100/50 border-default-200'
                     )}
                 >
                     <div className="flex items-center gap-3">
                         {/* Drag handle */}
-                        <button
+                        <Button
                             {...rowAttributes}
                             {...rowListeners}
-                            className="touch-none cursor-grab active:cursor-grabbing p-1 hover:bg-default-100 rounded"
+                            variant="bordered"
+                            color="default"
+                            isIconOnly
+                            className="touch-none cursor-grab  active:cursor-grabbing p-1 hover:bg-default-100 rounded-md"
                             aria-label="Drag row"
                         >
                             <Icon
                                 icon="akar-icons:drag-vertical"
-                                className="w-5 h-5 text-default-400"
+                                className="w-4 h-4 text-default-400"
                             />
-                        </button>
+                        </Button>
 
-                        <Chip size="sm" variant="flat">
+                        <Chip size="md" variant="bordered" color="default">
                             Row {index + 1}
                         </Chip>
-                    </div>
 
+                        {/* Product counter with visual feedback */}
+                        <Chip
+                            size="md"
+                            variant="bordered"
+                            color={rowProductCount >= 3 ? 'warning' : 'success'}
+                            className={cn(
+                                'transition-all duration-200',
+                                rowProductCount >= 3 && 'animate-pulse'
+                            )}
+                        >
+                            {rowProductCount}/3 products
+                        </Chip>
+
+                        {rowProductCount >= 3 && (
+                            <Chip
+                                startContent={
+                                    <Icon
+                                        icon="akar-icons:info-fill"
+                                        className="w-4 h-4 mr-1"
+                                    />
+                                }
+                                size="md"
+                                variant="bordered"
+                                color="warning"
+                            >
+                                Full
+                            </Chip>
+                        )}
+                        {rowProductCount === 0 && (
+                            <Chip
+                                startContent={
+                                    <Icon
+                                        icon="akar-icons:info-fill"
+                                        className="w-4 h-4 mr-1"
+                                    />
+                                }
+                                size="md"
+                                variant="bordered"
+                                color="danger"
+                            >
+                                File can not be empty
+                            </Chip>
+                        )}
+                    </div>
                     <div className="flex items-center gap-2">
+                        {row.templateId === 'template_none' && (
+                            <Chip size="md" variant="flat" color="danger">
+                                No template assigned
+                            </Chip>
+                        )}
                         <TemplateSelector
                             selectedTemplateId={row.templateId}
                             onTemplateChange={(templateId) =>
@@ -165,12 +310,16 @@ export function GridRow({
                     </div>
                 </CardHeader>
 
-                <div ref={setDropRef}>
+                <div ref={setDropRef} onDragOver={handleDragOverThrottled}>
                     <CardBody
                         className={cn(
                             'min-h-80 p-6 transition-all duration-200',
-                            isOver &&
-                                'bg-success-100/40 backdrop-blur-sm border-2 border-success-400 border-dashed rounded-lg'
+                            // ✅ Valid hover: Green dashed border
+                            isValidHover &&
+                                'bg-success-100/40 backdrop-blur-sm border-2 border-success-400 border-dashed rounded-lg',
+                            // 🚫 Blocked hover: Red dashed border
+                            isBlockedHover &&
+                                'bg-danger-100/30 backdrop-blur-sm border-2 border-danger-400 border-dashed rounded-lg'
                         )}
                         onClick={onSelect}
                     >

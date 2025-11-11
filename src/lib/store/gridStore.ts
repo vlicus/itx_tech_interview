@@ -10,6 +10,20 @@ import type { IGridState, IGridRow, IProduct } from '@/types'
 import { undoRedo, UndoRedoState } from './proxy/undo-redo'
 
 /**
+ * Helper: Get default template based on number of products in row
+ * - 1 producto → Alineación derecha (RIGHT)
+ * - 2 productos → Alineación izquierda (LEFT)
+ * - 3 productos → Alineación centro (CENTER)
+ */
+function getDefaultTemplateForProductCount(productCount: number): string {
+    if (productCount === 1) return 'template_right'
+    if (productCount === 2) return 'template_left'
+    if (productCount === 3) return 'template_center'
+    // Fallback: si está vacío o tiene más de 3 (edge case), usar right
+    return 'template_right'
+}
+
+/**
  * Grid actions interface
  */
 interface IGridActions {
@@ -155,7 +169,7 @@ export const useGridStore = create<TGridStore>()(
                                     .toString(36)
                                     .substr(2, 9)}`,
                                 productIds: [],
-                                templateId: 'template_right', // Default template: Derecha
+                                templateId: 'template_right', // Filas vacías por defecto: derecha
                                 order: state.rows.length,
                             }
                             console.log('Adding new row', newRow)
@@ -183,15 +197,23 @@ export const useGridStore = create<TGridStore>()(
                                 state.rows = []
                             }
 
+                            // Ensure max 3 products
+                            const finalProductIds = productIds.slice(0, 3)
+
+                            // Usar alineación dinámica según cantidad de productos
+                            const dynamicTemplateId = getDefaultTemplateForProductCount(
+                                finalProductIds.length
+                            )
+
                             const newRow: IGridRow = {
                                 id: `row_${Date.now()}_${Math.random()
                                     .toString(36)
                                     .substr(2, 9)}`,
-                                productIds: productIds.slice(0, 3), // Ensure max 3 products
-                                templateId: 'template_right', // Default template: Derecha
+                                productIds: finalProductIds,
+                                templateId: dynamicTemplateId, // ✨ Alineación dinámica
                                 order: state.rows.length,
                             }
-                            console.log('🟢 [STORE] newRow creada:', newRow)
+                            console.log('🟢 [STORE] newRow creada con template dinámico:', newRow)
                             state.rows.push(newRow)
                             console.log(
                                 '🟢 [STORE] state.rows después de push:',
@@ -295,7 +317,15 @@ export const useGridStore = create<TGridStore>()(
                                 return
                             }
 
-                            // Remove from source row
+                            // ✅ VALIDATE FIRST: Check target row has space BEFORE removing from source
+                            if (targetRow.productIds.length >= 3) {
+                                console.error(
+                                    '❌ [STORE] Target row is full! This should not happen - drop should be blocked earlier'
+                                )
+                                return // 🛑 Return WITHOUT touching source row
+                            }
+
+                            // Verify product exists in source row
                             const productIndex =
                                 sourceRow.productIds.indexOf(productId)
                             if (productIndex === -1) {
@@ -306,138 +336,29 @@ export const useGridStore = create<TGridStore>()(
                                 return
                             }
 
+                            // NOW it's safe to remove from source row
                             sourceRow.productIds = sourceRow.productIds.filter(
                                 (id) => id !== productId
                             )
 
-                            // Helper function to handle overflow recursively
-                            const addProductWithOverflow = (
-                                rowId: string,
-                                productToAdd: string,
-                                insertIndex?: number
-                            ) => {
-                                const row = state.rows.find(
-                                    (r) => r.id === rowId
+                            // Insert product at specified index or end
+                            if (
+                                targetIndex >= 0 &&
+                                targetIndex <= targetRow.productIds.length
+                            ) {
+                                console.log(
+                                    '✅ [STORE] Inserting at index:',
+                                    targetIndex
                                 )
-                                if (!row) {
-                                    console.warn(
-                                        '⚠️ [STORE] Row not found in overflow:',
-                                        rowId
-                                    )
-                                    return
-                                }
-
-                                console.log('🟡 [STORE] addProductWithOverflow:', {
-                                    rowId,
-                                    productToAdd,
-                                    insertIndex,
-                                    currentProducts: row.productIds,
-                                    currentCount: row.productIds.length,
-                                })
-
-                                if (row.productIds.length < 3) {
-                                    // Row has space, add product at specified index or end
-                                    if (
-                                        insertIndex !== undefined &&
-                                        insertIndex >= 0 &&
-                                        insertIndex <= row.productIds.length
-                                    ) {
-                                        console.log(
-                                            '✅ [STORE] Inserting at index:',
-                                            insertIndex
-                                        )
-                                        row.productIds.splice(
-                                            insertIndex,
-                                            0,
-                                            productToAdd
-                                        )
-                                    } else {
-                                        console.log('✅ [STORE] Adding to end')
-                                        row.productIds.push(productToAdd)
-                                    }
-                                } else {
-                                    // Row is full, implement overflow logic
-                                    console.log(
-                                        '⚠️ [STORE] Row is full, triggering overflow'
-                                    )
-
-                                    // Extract rightmost product (last in array)
-                                    const rightmostProduct =
-                                        row.productIds[
-                                            row.productIds.length - 1
-                                        ]
-
-                                    console.log(
-                                        '🟡 [STORE] Displacing product:',
-                                        rightmostProduct
-                                    )
-
-                                    // Insert new product at specified index or replace rightmost
-                                    if (
-                                        insertIndex !== undefined &&
-                                        insertIndex >= 0 &&
-                                        insertIndex < row.productIds.length
-                                    ) {
-                                        // Insert at index, which will push rightmost out
-                                        row.productIds.splice(
-                                            insertIndex,
-                                            0,
-                                            productToAdd
-                                        )
-                                        // Remove the last item (which is now at index 3)
-                                        row.productIds.pop()
-                                    } else {
-                                        // Replace rightmost with new product (for insertIndex >= length or undefined)
-                                        row.productIds[
-                                            row.productIds.length - 1
-                                        ] = productToAdd
-                                    }
-
-                                    // Find next row
-                                    const currentRowIndex = state.rows.findIndex(
-                                        (r) => r.id === rowId
-                                    )
-                                    const nextRow =
-                                        state.rows[currentRowIndex + 1]
-
-                                    if (nextRow) {
-                                        console.log(
-                                            '🟡 [STORE] Recursively adding to next row:',
-                                            nextRow.id
-                                        )
-                                        // Recursively add to next row (always at end for overflow)
-                                        addProductWithOverflow(
-                                            nextRow.id,
-                                            rightmostProduct
-                                        )
-                                    } else {
-                                        console.log(
-                                            '🔴 [STORE] No next row found, CREATING NEW ROW'
-                                        )
-                                        // No next row, create new one
-                                        const newRow: IGridRow = {
-                                            id: `row_${Date.now()}_${Math.random()
-                                                .toString(36)
-                                                .substr(2, 9)}`,
-                                            productIds: [rightmostProduct],
-                                            templateId: 'template_right',
-                                            order: state.rows.length,
-                                        }
-                                        state.rows.push(newRow)
-                                        console.log(
-                                            '✅ [STORE] New row created:',
-                                            newRow.id
-                                        )
-                                    }
-                                }
+                                targetRow.productIds.splice(
+                                    targetIndex,
+                                    0,
+                                    productId
+                                )
+                            } else {
+                                console.log('✅ [STORE] Adding to end')
+                                targetRow.productIds.push(productId)
                             }
-
-                            // Add product to target row with overflow handling
-                            addProductWithOverflow(
-                                targetRowId,
-                                productId,
-                                targetIndex
-                            )
                         })
                     ),
 

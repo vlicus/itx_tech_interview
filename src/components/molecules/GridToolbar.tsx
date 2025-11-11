@@ -1,26 +1,21 @@
 /**
  * GridToolbar - Molecular Component
- * Main toolbar with stats, undo/redo controls, and actions
+ * Main toolbar with stats and actions
  */
 
 import React from 'react'
-import { Button, Tooltip } from '@heroui/react'
-import { SaveIcon } from 'lucide-react'
+import { Button, Tooltip, Chip } from '@heroui/react'
 import { GridStats } from './GridStats'
-import { UndoRedoControls } from './UndoRedoControls'
 import { ZoomControls } from '@/components/ui/ZoomControls'
 import { Icon } from '@iconify/react'
 
 interface GridToolbarProps {
     rowCount: number
     productCount: number
-    onUndo: () => void
-    onRedo: () => void
-    canUndo: boolean
-    canRedo: boolean
     onSave: () => void
     isSaving: boolean
     isValid: boolean
+    hasUnsavedChanges: boolean
     className?: string
 }
 
@@ -28,13 +23,10 @@ export const GridToolbar = React.memo(
     ({
         rowCount,
         productCount,
-        onUndo,
-        onRedo,
-        canUndo,
-        canRedo,
         onSave,
         isSaving,
         isValid,
+        hasUnsavedChanges,
         className,
     }: GridToolbarProps) => {
         return (
@@ -48,37 +40,45 @@ export const GridToolbar = React.memo(
                                     rowCount={rowCount}
                                     productCount={productCount}
                                 />
-
-                                <div className="h-8 w-px bg-linear-to-b from-transparent via-neutral-300 to-transparent" />
-
-                                <UndoRedoControls
-                                    onUndo={onUndo}
-                                    onRedo={onRedo}
-                                    canUndo={canUndo}
-                                    canRedo={canRedo}
-                                />
+                                <ZoomControls />
                             </div>
 
-                            <div className="flex items-center gap-5">
-                                <ZoomControls />
+                            <div className="flex items-center gap-3">
+                                {/* Unsaved changes indicator */}
+                                {hasUnsavedChanges && (
+                                    <Chip
+                                        size="md"
+                                        color="warning"
+                                        variant="bordered"
+                                        className="animate-pulse"
+                                    >
+                                        Unsaved changes
+                                    </Chip>
+                                )}
+                                {/* Save Button */}
                                 <Tooltip
                                     className="bg-white rounded-full"
                                     content={
                                         !isValid
                                             ? 'Grid must be valid to save'
-                                            : 'Save'
+                                            : 'Save grid'
                                     }
                                 >
                                     <Button
                                         onPress={onSave}
                                         isLoading={isSaving}
-                                        className=" text-black shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 rounded-full min-w-4 min-h-10 px-4 py-2 flex items-center gap-2"
+                                        isDisabled={!isValid}
+                                        variant="bordered"
+                                        color="default"
+                                        className="text-black transition-all duration-200 hover:scale-105 rounded-full min-w-4 min-h-10 px-4 py-2 flex items-center gap-2"
                                         startContent={
                                             !isSaving && (
                                                 <Icon icon="akar-icons:save" />
                                             )
                                         }
-                                    ></Button>
+                                    >
+                                        Save
+                                    </Button>
                                 </Tooltip>
                             </div>
                         </div>
@@ -86,19 +86,28 @@ export const GridToolbar = React.memo(
                         {/* Mobile Layout */}
                         <div className="flex lg:hidden flex-col gap-3">
                             <div className="flex items-center justify-between">
-                                <GridStats
-                                    rowCount={rowCount}
-                                    productCount={productCount}
-                                />
-                                <UndoRedoControls
-                                    onUndo={onUndo}
-                                    onRedo={onRedo}
-                                    canUndo={canUndo}
-                                    canRedo={canRedo}
-                                />
+                                <div className="flex items-center gap-2">
+                                    <GridStats
+                                        rowCount={rowCount}
+                                        productCount={productCount}
+                                    />
+                                    {/* Unsaved changes indicator */}
+                                    {hasUnsavedChanges && (
+                                        <Chip
+                                            size="sm"
+                                            color="warning"
+                                            variant="flat"
+                                            className="animate-pulse"
+                                        >
+                                            Unsaved
+                                        </Chip>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex items-center justify-between gap-2">
                                 <ZoomControls />
+
+                                {/* Save Button */}
                                 <Tooltip
                                     className="bg-white rounded-full"
                                     content={
@@ -110,13 +119,16 @@ export const GridToolbar = React.memo(
                                     <Button
                                         onPress={onSave}
                                         isLoading={isSaving}
-                                        className=" text-black shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 rounded-full min-w-4 min-h-10 px-4 py-2 flex items-center gap-2"
+                                        isDisabled={!isValid}
+                                        className="text-black shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 rounded-full min-w-4 min-h-10 px-4 py-2 flex items-center gap-2"
                                         startContent={
                                             !isSaving && (
                                                 <Icon icon="akar-icons:save" />
                                             )
                                         }
-                                    ></Button>
+                                    >
+                                        Save
+                                    </Button>
                                 </Tooltip>
                             </div>
                         </div>
