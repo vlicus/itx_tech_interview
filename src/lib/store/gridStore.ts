@@ -10,6 +10,20 @@ import type { IGridState, IGridRow, IProduct } from '@/types'
 import { undoRedo, UndoRedoState } from './proxy/undo-redo'
 
 /**
+ * Helper: Get default template based on number of products in row
+ * - 1 producto → Alineación derecha (RIGHT)
+ * - 2 productos → Alineación izquierda (LEFT)
+ * - 3 productos → Alineación centro (CENTER)
+ */
+function getDefaultTemplateForProductCount(productCount: number): string {
+    if (productCount === 1) return 'template_right'
+    if (productCount === 2) return 'template_left'
+    if (productCount === 3) return 'template_center'
+    // Fallback: si está vacío o tiene más de 3 (edge case), usar right
+    return 'template_right'
+}
+
+/**
  * Grid actions interface
  */
 interface IGridActions {
@@ -155,7 +169,7 @@ export const useGridStore = create<TGridStore>()(
                                     .toString(36)
                                     .substr(2, 9)}`,
                                 productIds: [],
-                                templateId: 'template_right', // Default template: Derecha
+                                templateId: 'template_right', // Filas vacías por defecto: derecha
                                 order: state.rows.length,
                             }
                             console.log('Adding new row', newRow)
@@ -183,15 +197,23 @@ export const useGridStore = create<TGridStore>()(
                                 state.rows = []
                             }
 
+                            // Ensure max 3 products
+                            const finalProductIds = productIds.slice(0, 3)
+
+                            // Usar alineación dinámica según cantidad de productos
+                            const dynamicTemplateId = getDefaultTemplateForProductCount(
+                                finalProductIds.length
+                            )
+
                             const newRow: IGridRow = {
                                 id: `row_${Date.now()}_${Math.random()
                                     .toString(36)
                                     .substr(2, 9)}`,
-                                productIds: productIds.slice(0, 3), // Ensure max 3 products
-                                templateId: 'template_right', // Default template: Derecha
+                                productIds: finalProductIds,
+                                templateId: dynamicTemplateId, // ✨ Alineación dinámica
                                 order: state.rows.length,
                             }
-                            console.log('🟢 [STORE] newRow creada:', newRow)
+                            console.log('🟢 [STORE] newRow creada con template dinámico:', newRow)
                             state.rows.push(newRow)
                             console.log(
                                 '🟢 [STORE] state.rows después de push:',
@@ -414,19 +436,25 @@ export const useGridStore = create<TGridStore>()(
                                         console.log(
                                             '🔴 [STORE] No next row found, CREATING NEW ROW'
                                         )
-                                        // No next row, create new one
+                                        // No next row, create new one with dynamic alignment
+                                        const newProductIds = [rightmostProduct]
+                                        const dynamicTemplateId = getDefaultTemplateForProductCount(
+                                            newProductIds.length
+                                        )
                                         const newRow: IGridRow = {
                                             id: `row_${Date.now()}_${Math.random()
                                                 .toString(36)
                                                 .substr(2, 9)}`,
-                                            productIds: [rightmostProduct],
-                                            templateId: 'template_right',
+                                            productIds: newProductIds,
+                                            templateId: dynamicTemplateId, // ✨ Alineación dinámica
                                             order: state.rows.length,
                                         }
                                         state.rows.push(newRow)
                                         console.log(
-                                            '✅ [STORE] New row created:',
-                                            newRow.id
+                                            '✅ [STORE] New row created with dynamic template:',
+                                            newRow.id,
+                                            'template:',
+                                            dynamicTemplateId
                                         )
                                     }
                                 }

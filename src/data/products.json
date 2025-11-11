@@ -1,58 +1,58 @@
 {
-  "products": [
-    {
-      "id": "product_1",
-      "name": "Camisa Básica Blanca",
-      "imageUrl": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=600&fit=crop",
-      "price": "24,99 EUR"
-    },
-    {
-      "id": "product_2",
-      "name": "Jeans Clásicos Azules",
-      "imageUrl": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=600&fit=crop",
-      "price": "36,87 EUR"
-    },
-    {
-      "id": "product_3",
-      "name": "Chaqueta de Cuero Negra",
-      "imageUrl": "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=600&fit=crop",
-      "price": "89,50 EUR"
-    },
-    {
-      "id": "product_4",
-      "name": "Vestido Floral de Verano",
-      "imageUrl": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop",
-      "price": "45,00 EUR"
-    },
-    {
-      "id": "product_5",
-      "name": "Camiseta Rayas",
-      "imageUrl": "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=600&fit=crop",
-      "price": "19,99 EUR"
-    },
-    {
-      "id": "product_6",
-      "name": "Cárdigan de Lana",
-      "imageUrl": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&h=600&fit=crop",
-      "price": "54,90 EUR"
-    },
-    {
-      "id": "product_7",
-      "name": "Jeans Oscuros",
-      "imageUrl": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=600&fit=crop",
-      "price": "42,00 EUR"
-    },
-    {
-      "id": "product_8",
-      "name": "Abrigo Beige",
-      "imageUrl": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=600&fit=crop",
-      "price": "125,00 EUR"
-    },
-    {
-      "id": "product_9",
-      "name": "Suéter Rojo de Punto",
-      "imageUrl": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=600&fit=crop",
-      "price": "39,99 EUR"
-    }
-  ]
+    "products": [
+        {
+            "id": "product_1",
+            "name": "Camisa Básica Blanca",
+            "imageUrl": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&h=600&fit=crop",
+            "price": "24,99 EUR"
+        },
+        {
+            "id": "product_2",
+            "name": "Jeans Clásicos Azules",
+            "imageUrl": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=600&fit=crop",
+            "price": "36,87 EUR"
+        },
+        {
+            "id": "product_3",
+            "name": "Chaqueta de Cuero Negra",
+            "imageUrl": "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&h=600&fit=crop",
+            "price": "89,50 EUR"
+        },
+        {
+            "id": "product_4",
+            "name": "Vestido Floral de Verano",
+            "imageUrl": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=600&fit=crop",
+            "price": "45,00 EUR"
+        },
+        {
+            "id": "product_5",
+            "name": "Camiseta Básica Negra",
+            "imageUrl": "https://images.unsplash.com/photo-1618354691373-d851c5c3a990?w=400&h=600&fit=crop",
+            "price": "19,99 EUR"
+        },
+        {
+            "id": "product_6",
+            "name": "Cárdigan de Lana",
+            "imageUrl": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=400&h=600&fit=crop",
+            "price": "54,90 EUR"
+        },
+        {
+            "id": "product_7",
+            "name": "Jeans Oscuros",
+            "imageUrl": "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&h=600&fit=crop",
+            "price": "42,00 EUR"
+        },
+        {
+            "id": "product_8",
+            "name": "Abrigo Beige",
+            "imageUrl": "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=600&fit=crop",
+            "price": "125,00 EUR"
+        },
+        {
+            "id": "product_9",
+            "name": "Suéter Rojo de Punto",
+            "imageUrl": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&h=600&fit=crop",
+            "price": "39,99 EUR"
+        }
+    ]
 }

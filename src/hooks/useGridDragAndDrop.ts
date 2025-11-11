@@ -2,15 +2,32 @@
  * useGridDragAndDrop Hook
  * Handles all drag-and-drop logic for rows and products
  */
-import { useState } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useSensors, useSensor, PointerSensor, KeyboardSensor } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useGridStore } from '@/lib/store'
 import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
-import type { TDragData } from '@/types'
+import type { TDragData, IProduct } from '@/types'
+
+/**
+ * Active drag item data
+ */
+interface ActiveDragItem {
+    id: string
+    type: 'PRODUCT' | 'ROW'
+    product?: IProduct
+    rowId?: string
+    // For ROW type
+    rowData?: {
+        row: any
+        products: IProduct[]
+        index: number
+    }
+}
 
 interface UseGridDragAndDropReturn {
     activeId: string | null
+    activeItem: ActiveDragItem | null
     sensors: ReturnType<typeof useSensors>
     handleDragStart: (event: DragStartEvent) => void
     handleDragOver: (event: DragOverEvent) => void
@@ -20,9 +37,12 @@ interface UseGridDragAndDropReturn {
 
 export function useGridDragAndDrop(): UseGridDragAndDropReturn {
     const [activeId, setActiveId] = useState<string | null>(null)
+    const [activeItem, setActiveItem] = useState<ActiveDragItem | null>(null)
+    const dragOverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     // Grid store
     const rows = useGridStore((state) => state.rows)
+    const products = useGridStore((state) => state.products)
     const moveRow = useGridStore((state) => state.moveRow)
     const moveProductBetweenRows = useGridStore(
         (state) => state.moveProductBetweenRows
@@ -44,16 +64,64 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
     )
 
     function handleDragStart(event: DragStartEvent) {
+        const activeData = event.active.data.current as TDragData
+
         console.log('🔵 [DRAG] handleDragStart:', {
             activeId: event.active.id,
-            data: event.active.data.current,
+            data: activeData,
         })
+
         setActiveId(event.active.id as string)
+
+        // Capture active item data for DragOverlay
+        if (activeData.type === 'PRODUCT') {
+            const product = products[activeData.productId]
+            setActiveItem({
+                id: event.active.id as string,
+                type: 'PRODUCT',
+                product,
+                rowId: activeData.sourceRowId,
+            })
+        } else if (activeData.type === 'ROW') {
+            // Capture complete row data including all products
+            const row = rows.find((r) => r.id === activeData.rowId)
+            if (row) {
+                const rowProducts = row.productIds
+                    .map((productId) => products[productId])
+                    .filter(Boolean) as IProduct[]
+
+                setActiveItem({
+                    id: event.active.id as string,
+                    type: 'ROW',
+                    rowData: {
+                        row,
+                        products: rowProducts,
+                        index: activeData.sourceIndex || 0,
+                    },
+                })
+            } else {
+                setActiveItem({
+                    id: event.active.id as string,
+                    type: 'ROW',
+                })
+            }
+        }
     }
 
-    function handleDragOver(event: DragOverEvent) {
-        // Handle drag over logic if needed
-    }
+    // Throttled drag over handler to prevent excessive re-renders (fixes blink bug)
+    const handleDragOver = useCallback((event: DragOverEvent) => {
+        // Clear any pending timeout
+        if (dragOverTimeoutRef.current) {
+            clearTimeout(dragOverTimeoutRef.current)
+        }
+
+        // Throttle drag over events to every 50ms
+        dragOverTimeoutRef.current = setTimeout(() => {
+            // Prevent default to enable drop
+            event.preventDefault?.()
+            // Handle drag over logic if needed in the future
+        }, 50)
+    }, [])
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event
@@ -215,14 +283,27 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
         }
 
         setActiveId(null)
+        setActiveItem(null)
+
+        // Clear drag over timeout
+        if (dragOverTimeoutRef.current) {
+            clearTimeout(dragOverTimeoutRef.current)
+        }
     }
 
     function handleDragCancel() {
         setActiveId(null)
+        setActiveItem(null)
+
+        // Clear drag over timeout
+        if (dragOverTimeoutRef.current) {
+            clearTimeout(dragOverTimeoutRef.current)
+        }
     }
 
     return {
         activeId,
+        activeItem,
         sensors,
         handleDragStart,
         handleDragOver,

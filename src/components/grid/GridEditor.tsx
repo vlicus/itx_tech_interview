@@ -43,6 +43,7 @@ export function GridEditor() {
     // Custom hook for drag and drop functionality
     const {
         activeId,
+        activeItem,
         sensors,
         handleDragStart,
         handleDragOver,
@@ -60,6 +61,9 @@ export function GridEditor() {
         canRedo,
         validation,
         errorsByRow,
+        shareableURL,
+        copyShareableURL,
+        hasUnsavedChanges,
     } = useGridOperations(hydrated, isLoading)
 
     // Show loading while hydrating or loading data
@@ -84,6 +88,9 @@ export function GridEditor() {
                 onSave={handleSave}
                 isSaving={isSaving}
                 isValid={validation.isValid}
+                shareableURL={shareableURL}
+                onCopyURL={copyShareableURL}
+                hasUnsavedChanges={hasUnsavedChanges}
             />
 
             {/* Grid Area - Now using organism component */}
@@ -99,6 +106,7 @@ export function GridEditor() {
                 onDragEnd={handleDragEnd}
                 onDragCancel={handleDragCancel}
                 activeId={activeId}
+                activeItem={activeItem}
                 zoomLevel={zoomLevel}
                 gridRef={gridRef}
             />

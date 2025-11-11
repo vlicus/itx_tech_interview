@@ -2,10 +2,11 @@
  * useGridOperations Hook
  * Handles grid operations like save, undo, redo, and cleanup
  */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import * as htmlToImage from 'html-to-image'
 import { useGridStore, useUIStore } from '@/lib/store'
-import { validateGrid, groupErrorsByRow } from '@/utils'
+import { validateGrid, groupErrorsByRow, createShareableURL } from '@/utils'
 
 interface UseGridOperationsReturn {
     gridRef: React.RefObject<HTMLDivElement | null>
@@ -16,6 +17,9 @@ interface UseGridOperationsReturn {
     canRedo: boolean
     validation: ReturnType<typeof validateGrid>
     errorsByRow: ReturnType<typeof groupErrorsByRow>
+    shareableURL: string | null
+    copyShareableURL: () => Promise<boolean>
+    hasUnsavedChanges: boolean
 }
 
 export function useGridOperations(
@@ -23,6 +27,11 @@ export function useGridOperations(
     isLoading: boolean
 ): UseGridOperationsReturn {
     const gridRef = useRef<HTMLDivElement>(null)
+    const pathname = usePathname()
+    const router = useRouter()
+
+    // State for shareable URL
+    const [shareableURL, setShareableURL] = useState<string | null>(null)
 
     // Grid store
     const rows = useGridStore((state) => state.rows)
@@ -37,8 +46,13 @@ export function useGridOperations(
     const showValidationErrors = useUIStore(
         (state) => state.showValidationErrors
     )
+    const hasUnsavedChanges = useUIStore((state) => state.hasUnsavedChanges)
     const setSaving = useUIStore((state) => state.setSaving)
     const addToast = useUIStore((state) => state.addToast)
+    const setHasUnsavedChanges = useUIStore(
+        (state) => state.setHasUnsavedChanges
+    )
+    const markAsSaved = useUIStore((state) => state.markAsSaved)
 
     // Auto-cleanup empty rows
     useEffect(() => {
@@ -51,13 +65,23 @@ export function useGridOperations(
         }
     }, [rows, hydrated, isLoading, removeRow])
 
+    // Track unsaved changes when grid state changes
+    useEffect(() => {
+        if (!hydrated || isLoading) return
+
+        // Mark as unsaved whenever rows change (after initial load)
+        if (rows.length > 0) {
+            setHasUnsavedChanges(true)
+        }
+    }, [rows, hydrated, isLoading, setHasUnsavedChanges])
+
     async function handleSave() {
         // Validate grid before saving
         const currentValidation = validateGrid(rows)
         if (!currentValidation.isValid) {
             addToast({
                 type: 'error',
-                message: 'Cannot save: make sure all files have assigned grids',
+                message: 'Cannot save: make sure all rows have products and templates',
             })
             return
         }
@@ -73,7 +97,21 @@ export function useGridOperations(
         setSaving(true)
 
         try {
-            // Capture the grid as PNG image
+            // 1. Generate shareable URL
+            const fullURL = createShareableURL(rows, pathname)
+            const origin =
+                typeof window !== 'undefined' ? window.location.origin : ''
+            const completeURL = `${origin}${fullURL}`
+
+            console.log('🔗 [handleSave] Generated shareable URL:', completeURL)
+
+            // Update browser URL without reloading
+            router.replace(fullURL, { scroll: false })
+
+            // Store shareable URL for copy button
+            setShareableURL(completeURL)
+
+            // 2. Capture the grid as PNG image
             const dataUrl = await htmlToImage.toPng(gridRef.current, {
                 quality: 1,
                 pixelRatio: 2, // Higher quality for retina displays
@@ -86,18 +124,49 @@ export function useGridOperations(
             link.href = dataUrl
             link.click()
 
+            // 3. Mark as saved (no unsaved changes)
+            markAsSaved()
+
+            // 4. Show success with copy URL option
             addToast({
                 type: 'success',
-                message: 'Grid image downloaded successfully!',
+                message: 'Grid saved! Image downloaded. URL updated.',
             })
         } catch (error) {
-            console.error('Error capturing grid:', error)
+            console.error('Error saving grid:', error)
             addToast({
                 type: 'error',
-                message: 'Failed to capture grid image',
+                message: 'Failed to save grid',
             })
         } finally {
             setSaving(false)
+        }
+    }
+
+    // Function to copy shareable URL to clipboard
+    async function copyShareableURL(): Promise<boolean> {
+        if (!shareableURL) {
+            addToast({
+                type: 'warning',
+                message: 'No shareable URL available. Save the grid first.',
+            })
+            return false
+        }
+
+        try {
+            await navigator.clipboard.writeText(shareableURL)
+            addToast({
+                type: 'success',
+                message: 'Shareable URL copied to clipboard!',
+            })
+            return true
+        } catch (error) {
+            console.error('Error copying URL:', error)
+            addToast({
+                type: 'error',
+                message: 'Failed to copy URL to clipboard',
+            })
+            return false
         }
     }
 
@@ -114,5 +183,8 @@ export function useGridOperations(
         canRedo,
         validation,
         errorsByRow,
+        shareableURL,
+        copyShareableURL,
+        hasUnsavedChanges,
     }
 }

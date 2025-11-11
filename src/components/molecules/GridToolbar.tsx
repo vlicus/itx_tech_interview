@@ -4,7 +4,7 @@
  */
 
 import React from 'react'
-import { Button, Tooltip } from '@heroui/react'
+import { Button, Tooltip, Chip } from '@heroui/react'
 import { SaveIcon } from 'lucide-react'
 import { GridStats } from './GridStats'
 import { UndoRedoControls } from './UndoRedoControls'
@@ -21,6 +21,9 @@ interface GridToolbarProps {
     onSave: () => void
     isSaving: boolean
     isValid: boolean
+    shareableURL: string | null
+    onCopyURL: () => Promise<boolean>
+    hasUnsavedChanges: boolean
     className?: string
 }
 
@@ -35,6 +38,9 @@ export const GridToolbar = React.memo(
         onSave,
         isSaving,
         isValid,
+        shareableURL,
+        onCopyURL,
+        hasUnsavedChanges,
         className,
     }: GridToolbarProps) => {
         return (
@@ -49,6 +55,18 @@ export const GridToolbar = React.memo(
                                     productCount={productCount}
                                 />
 
+                                {/* Unsaved changes indicator */}
+                                {hasUnsavedChanges && (
+                                    <Chip
+                                        size="sm"
+                                        color="warning"
+                                        variant="flat"
+                                        className="animate-pulse"
+                                    >
+                                        Unsaved changes
+                                    </Chip>
+                                )}
+
                                 <div className="h-8 w-px bg-linear-to-b from-transparent via-neutral-300 to-transparent" />
 
                                 <UndoRedoControls
@@ -59,37 +77,75 @@ export const GridToolbar = React.memo(
                                 />
                             </div>
 
-                            <div className="flex items-center gap-5">
+                            <div className="flex items-center gap-3">
                                 <ZoomControls />
-                                <Tooltip
-                                    className="bg-white rounded-full"
-                                    content={
-                                        !isValid
-                                            ? 'Grid must be valid to save'
-                                            : 'Save'
-                                    }
-                                >
-                                    <Button
-                                        onPress={onSave}
-                                        isLoading={isSaving}
-                                        className=" text-black shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 rounded-full min-w-4 min-h-10 px-4 py-2 flex items-center gap-2"
-                                        startContent={
-                                            !isSaving && (
-                                                <Icon icon="akar-icons:save" />
-                                            )
+
+                                <div className="flex items-center gap-2">
+                                    {/* Copy URL Button - shown after saving */}
+                                    {shareableURL && (
+                                        <Tooltip
+                                            className="bg-white rounded-full"
+                                            content="Copy shareable URL"
+                                        >
+                                            <Button
+                                                onPress={onCopyURL}
+                                                isIconOnly
+                                                className="text-indigo-600 border-indigo-200 shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 rounded-full min-w-10 min-h-10"
+                                                variant="bordered"
+                                            >
+                                                <Icon
+                                                    icon="akar-icons:link-chain"
+                                                    className="w-5 h-5"
+                                                />
+                                            </Button>
+                                        </Tooltip>
+                                    )}
+
+                                    {/* Save Button */}
+                                    <Tooltip
+                                        className="bg-white rounded-full"
+                                        content={
+                                            !isValid
+                                                ? 'Grid must be valid to save'
+                                                : 'Save grid and generate shareable URL'
                                         }
-                                    ></Button>
-                                </Tooltip>
+                                    >
+                                        <Button
+                                            onPress={onSave}
+                                            isLoading={isSaving}
+                                            isDisabled={!isValid}
+                                            className="text-black shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 rounded-full min-w-4 min-h-10 px-4 py-2 flex items-center gap-2"
+                                            startContent={
+                                                !isSaving && (
+                                                    <Icon icon="akar-icons:save" />
+                                                )
+                                            }
+                                        ></Button>
+                                    </Tooltip>
+                                </div>
                             </div>
                         </div>
 
                         {/* Mobile Layout */}
                         <div className="flex lg:hidden flex-col gap-3">
                             <div className="flex items-center justify-between">
-                                <GridStats
-                                    rowCount={rowCount}
-                                    productCount={productCount}
-                                />
+                                <div className="flex items-center gap-2">
+                                    <GridStats
+                                        rowCount={rowCount}
+                                        productCount={productCount}
+                                    />
+                                    {/* Unsaved changes indicator */}
+                                    {hasUnsavedChanges && (
+                                        <Chip
+                                            size="sm"
+                                            color="warning"
+                                            variant="flat"
+                                            className="animate-pulse"
+                                        >
+                                            Unsaved
+                                        </Chip>
+                                    )}
+                                </div>
                                 <UndoRedoControls
                                     onUndo={onUndo}
                                     onRedo={onRedo}
@@ -99,25 +155,51 @@ export const GridToolbar = React.memo(
                             </div>
                             <div className="flex items-center justify-between gap-2">
                                 <ZoomControls />
-                                <Tooltip
-                                    className="bg-white rounded-full"
-                                    content={
-                                        !isValid
-                                            ? 'Grid must be valid to save'
-                                            : 'Save'
-                                    }
-                                >
-                                    <Button
-                                        onPress={onSave}
-                                        isLoading={isSaving}
-                                        className=" text-black shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 rounded-full min-w-4 min-h-10 px-4 py-2 flex items-center gap-2"
-                                        startContent={
-                                            !isSaving && (
-                                                <Icon icon="akar-icons:save" />
-                                            )
+
+                                <div className="flex items-center gap-2">
+                                    {/* Copy URL Button - shown after saving */}
+                                    {shareableURL && (
+                                        <Tooltip
+                                            className="bg-white rounded-full"
+                                            content="Copy URL"
+                                        >
+                                            <Button
+                                                onPress={onCopyURL}
+                                                isIconOnly
+                                                className="text-indigo-600 border-indigo-200 shadow-md hover:shadow-lg transition-all duration-200 rounded-full min-w-10 min-h-10"
+                                                variant="bordered"
+                                                size="sm"
+                                            >
+                                                <Icon
+                                                    icon="akar-icons:link-chain"
+                                                    className="w-4 h-4"
+                                                />
+                                            </Button>
+                                        </Tooltip>
+                                    )}
+
+                                    {/* Save Button */}
+                                    <Tooltip
+                                        className="bg-white rounded-full"
+                                        content={
+                                            !isValid
+                                                ? 'Grid must be valid to save'
+                                                : 'Save'
                                         }
-                                    ></Button>
-                                </Tooltip>
+                                    >
+                                        <Button
+                                            onPress={onSave}
+                                            isLoading={isSaving}
+                                            isDisabled={!isValid}
+                                            className="text-black shadow-md hover:shadow-lg transition-all duration-200 hover:scale-105 rounded-full min-w-4 min-h-10 px-4 py-2 flex items-center gap-2"
+                                            startContent={
+                                                !isSaving && (
+                                                    <Icon icon="akar-icons:save" />
+                                                )
+                                            }
+                                        ></Button>
+                                    </Tooltip>
+                                </div>
                             </div>
                         </div>
                     </div>

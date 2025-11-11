@@ -5,6 +5,7 @@
  * Represents a row in the product grid with drag-and-drop support
  */
 
+import { useMemo, useRef, useCallback, useEffect } from 'react'
 import { useSortable, SortableContext } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
@@ -40,6 +41,51 @@ export function GridRow({
 
     const template = row.templateId ? getTemplateById(row.templateId) : null
 
+    // Refs for throttling drag over events
+    const dragOverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const lastDragOverTimeRef = useRef<number>(0)
+
+    // Memoized check for row capacity (prevents blink on re-renders)
+    const rowProductCount = useMemo(
+        () => row.productIds.length,
+        [row.productIds.length]
+    )
+
+    // Stable canDrop logic - always allow drop (LIFO handles overflow)
+    const canAcceptDrop = useMemo(() => true, [])
+
+    // Throttled drag over handler - prevents excessive re-renders
+    const handleDragOverThrottled = useCallback((event: React.DragEvent) => {
+        const now = Date.now()
+        const timeSinceLastCall = now - lastDragOverTimeRef.current
+
+        // Throttle to 50ms intervals
+        if (timeSinceLastCall >= 50) {
+            lastDragOverTimeRef.current = now
+            event.preventDefault()
+        } else {
+            // Clear existing timeout
+            if (dragOverTimeoutRef.current) {
+                clearTimeout(dragOverTimeoutRef.current)
+            }
+
+            // Schedule for next interval
+            dragOverTimeoutRef.current = setTimeout(() => {
+                lastDragOverTimeRef.current = Date.now()
+                event.preventDefault()
+            }, 50 - timeSinceLastCall)
+        }
+    }, [])
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (dragOverTimeoutRef.current) {
+                clearTimeout(dragOverTimeoutRef.current)
+            }
+        }
+    }, [])
+
     // Sortable for the entire row
     const {
         attributes: rowAttributes,
@@ -57,13 +103,20 @@ export function GridRow({
         },
     })
 
-    // Droppable for products
-    const { setNodeRef: setDropRef, isOver } = useDroppable({
-        id: `droppable-${row.id}`,
-        data: {
+    // Droppable for products with stable data object
+    const dropData = useMemo(
+        () => ({
             rowId: row.id,
             accepts: 'PRODUCT',
-        },
+            canAcceptDrop,
+            currentCount: rowProductCount,
+        }),
+        [row.id, canAcceptDrop, rowProductCount]
+    )
+
+    const { setNodeRef: setDropRef, isOver } = useDroppable({
+        id: `droppable-${row.id}`,
+        data: dropData,
     })
 
     const rowStyle = {
@@ -82,18 +135,20 @@ export function GridRow({
 
     const hasErrors = validationErrors.length > 0
 
-    // Calculate alignment class based on template
-    // - If no template: use default RIGHT (justify-end)
-    // - If template with no explicit alignment: use neutral (justify-start)
-    // - Otherwise: use template's alignment
-    const alignmentMap: Record<string, string> = {
-        LEFT: 'justify-start',
-        CENTER: 'justify-center',
-        RIGHT: 'justify-end',
-    }
-    const alignmentClass = template
-        ? alignmentMap[template.alignment as string] ?? 'justify-start'
-        : 'justify-end' // Default: Derecha (RIGHT) when no template initially
+    // Memoized hover state calculation (prevents blink on full rows)
+    const isHovered = useMemo(() => isOver, [isOver])
+
+    // Calculate alignment class based on template (memoized)
+    const alignmentClass = useMemo(() => {
+        const alignmentMap: Record<string, string> = {
+            LEFT: 'justify-start',
+            CENTER: 'justify-center',
+            RIGHT: 'justify-end',
+        }
+        return template
+            ? alignmentMap[template.alignment as string] ?? 'justify-start'
+            : 'justify-end' // Default: Derecha (RIGHT) when no template initially
+    }, [template])
 
     return (
         <div
@@ -109,14 +164,14 @@ export function GridRow({
                     'w-full transition-all duration-200 shadow-lg hover:shadow-xl',
                     isSelected && 'ring-2 ring-primary shadow-primary/20',
                     hasErrors && 'ring-2 ring-danger shadow-danger/20',
-                    isOver &&
+                    isHovered &&
                         'ring-4 ring-success-500 shadow-success/30 scale-[1.01] bg-success-50/30'
                 )}
             >
                 <CardHeader
                     className={cn(
                         'flex flex-row items-center justify-between gap-2 px-6 py-4 border-b transition-all duration-200',
-                        isOver
+                        isHovered
                             ? 'bg-linear-to-r from-success-100 to-success-50 border-success-300'
                             : 'bg-linear-to-r from-default-50 to-default-100/50 border-default-200'
                     )}
@@ -165,11 +220,14 @@ export function GridRow({
                     </div>
                 </CardHeader>
 
-                <div ref={setDropRef}>
+                <div
+                    ref={setDropRef}
+                    onDragOver={handleDragOverThrottled}
+                >
                     <CardBody
                         className={cn(
                             'min-h-80 p-6 transition-all duration-200',
-                            isOver &&
+                            isHovered &&
                                 'bg-success-100/40 backdrop-blur-sm border-2 border-success-400 border-dashed rounded-lg'
                         )}
                         onClick={onSelect}
