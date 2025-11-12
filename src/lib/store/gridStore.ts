@@ -1,13 +1,12 @@
 /**
  * Grid Store
- * Manages grid state with undo/redo and localStorage persistence
+ * Manages grid state with localStorage persistence
  */
 
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { produce } from 'immer'
 import type { IGridState, IGridRow, IProduct } from '@/types'
-import { undoRedo, UndoRedoState } from './proxy/undo-redo'
 
 /**
  * Helper: Get default template based on number of products in row
@@ -67,7 +66,7 @@ interface IGridActions {
 /**
  * Combined grid store type
  */
-type TGridStore = IGridState & IGridActions & UndoRedoState
+type TGridStore = IGridState & IGridActions
 
 /**
  * Initial grid state
@@ -79,12 +78,11 @@ const initialState: IGridState = {
 }
 
 /**
- * Create grid store with undo/redo and persistence
+ * Create grid store with persistence
  */
 export const useGridStore = create<TGridStore>()(
     persist(
-        undoRedo(
-            (set) => ({
+        (set) => ({
                 ...initialState,
 
                 // Product management
@@ -100,14 +98,6 @@ export const useGridStore = create<TGridStore>()(
                                 '🟢 [STORE] state antes de setProducts:',
                                 state
                             )
-
-                            // Asegurar que state.products existe (fix para bug de middleware undo-redo)
-                            if (!state.products) {
-                                console.log(
-                                    '⚠️ [STORE] state.products era undefined, inicializando a {}'
-                                )
-                                state.products = {}
-                            }
 
                             products.forEach((product) => {
                                 state.products[product.id] = product
@@ -188,14 +178,6 @@ export const useGridStore = create<TGridStore>()(
                                 '🟢 [STORE] state antes de addRowWithProducts:',
                                 state
                             )
-
-                            // Asegurar que state.rows existe (fix para bug de middleware undo-redo)
-                            if (!state.rows) {
-                                console.log(
-                                    '⚠️ [STORE] state.rows era undefined, inicializando a []'
-                                )
-                                state.rows = []
-                            }
 
                             // Ensure max 3 products
                             const finalProductIds = productIds.slice(0, 3)
@@ -416,8 +398,6 @@ export const useGridStore = create<TGridStore>()(
                         })
                     ),
             }),
-            { limit: 50 }
-        ),
         {
             name: 'product-grid-storage',
             storage: createJSONStorage(() => localStorage),
