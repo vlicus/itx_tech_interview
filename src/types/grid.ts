@@ -1,10 +1,3 @@
-export const MIN_PRODUCTS_PER_ROW: number = Number(
-    process.env.MIN_PRODUCTS_PER_ROW
-)
-export const MAX_PRODUCTS_PER_ROW: number = Number(
-    process.env.MAX_PRODUCTS_PER_ROW
-)
-
 export interface IGridRow {
     id: string
     productIds: string[]

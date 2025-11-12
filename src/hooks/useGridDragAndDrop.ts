@@ -10,10 +10,9 @@ import { useGridStore, useUIStore } from '@/lib/store'
 import { useProducts } from './api/useProducts'
 import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
 import type { TDragData, IProduct } from '@/types'
+import { GRID_CONSTRAINTS } from '../lib/constants'
 
-const MAX_PRODUCTS_PER_ROW = Number(
-    process.env.NEXT_PUBLIC_MAX_PRODUCTS_PER_ROW
-)
+const MAX_PRODUCTS_PER_ROW = GRID_CONSTRAINTS.MAX_PRODUCTS_PER_ROW
 
 interface ActiveDragItem {
     id: string

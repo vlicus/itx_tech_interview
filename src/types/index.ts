@@ -13,8 +13,6 @@ export type {
     TDragData,
 } from './grid'
 
-export { MIN_PRODUCTS_PER_ROW, MAX_PRODUCTS_PER_ROW } from './grid'
-
 export type {
     IGetProductsRequest,
     IGetProductsResponse,
@@ -28,10 +26,4 @@ export type {
 
 export type { IUIState, TToastType, IToast, TDeviceType } from './ui'
 
-export {
-    MIN_ZOOM_LEVEL,
-    MAX_ZOOM_LEVEL,
-    ZOOM_STEP,
-    DEFAULT_ZOOM_LEVEL,
-    BREAKPOINTS,
-} from './ui'
+export { BREAKPOINTS } from './ui'

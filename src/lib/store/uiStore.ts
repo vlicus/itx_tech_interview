@@ -1,12 +1,9 @@
 import { create } from 'zustand'
-import type {
-    IUIState,
-    IToast,
-    DEFAULT_ZOOM_LEVEL,
-    MIN_ZOOM_LEVEL,
-    MAX_ZOOM_LEVEL,
-    ZOOM_STEP,
-} from '@/types'
+import type { IUIState, IToast } from '@/types'
+
+import { TOAST_DURATION_MS, ZOOM } from '../../lib/constants'
+
+const { DEFAULT_ZOOM, MAX_ZOOM, MIN_ZOOM, ZOOM_INCREMENT } = ZOOM
 
 interface IUIActions {
     setZoomLevel: (level: number) => void
@@ -35,11 +32,6 @@ interface IExtendedUIState extends IUIState {
 }
 
 type TUIStore = IExtendedUIState & IUIActions
-
-const DEFAULT_ZOOM = 1.0
-const MIN_ZOOM = 0.5
-const MAX_ZOOM = 2.0
-const ZOOM_INCREMENT = 0.1
 
 const initialState: IExtendedUIState = {
     zoomLevel: DEFAULT_ZOOM,
@@ -118,7 +110,7 @@ export const useUIStore = create<TUIStore>((set, get) => ({
         const newToast: IToast = {
             ...toast,
             id,
-            duration: toast.duration || 5000,
+            duration: toast.duration || TOAST_DURATION_MS,
         }
 
         set((state) => ({

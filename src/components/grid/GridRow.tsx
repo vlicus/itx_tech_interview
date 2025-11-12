@@ -14,6 +14,7 @@ import { getTemplateById } from '@/utils'
 import { cn } from '@/utils'
 import type { IGridRow, IProduct } from '@/types'
 import { Icon } from '@iconify/react'
+import { DRAG_THROTTLE_MS } from '@/lib/constants'
 
 interface GridRowProps {
     row: IGridRow
@@ -62,7 +63,7 @@ export function GridRow({
         const now = Date.now()
         const timeSinceLastCall = now - lastDragOverTimeRef.current
 
-        if (timeSinceLastCall >= 50) {
+        if (timeSinceLastCall >= DRAG_THROTTLE_MS) {
             lastDragOverTimeRef.current = now
             event.preventDefault()
         } else {
@@ -73,7 +74,7 @@ export function GridRow({
             dragOverTimeoutRef.current = setTimeout(() => {
                 lastDragOverTimeRef.current = Date.now()
                 event.preventDefault()
-            }, 50 - timeSinceLastCall)
+            }, DRAG_THROTTLE_MS - timeSinceLastCall)
         }
     }, [])
 

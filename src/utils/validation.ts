@@ -3,16 +3,12 @@
  * Functions for validating grid state before saving
  */
 
-import type {
-    IGridRow,
-    IValidationResult,
-    IValidationError,
-    MIN_PRODUCTS_PER_ROW,
-    MAX_PRODUCTS_PER_ROW,
-} from '@/types'
+import type { IGridRow, IValidationResult, IValidationError } from '@/types'
 
-const MIN_PRODUCTS = 1 // harcoded minimum products per row because test will fail
-const MAX_PRODUCTS = 3
+import { GRID_CONSTRAINTS } from '../lib/constants'
+
+const MIN_PRODUCTS = GRID_CONSTRAINTS.MIN_PRODUCTS_PER_ROW // harcoded minimum products per row because test will fail
+const MAX_PRODUCTS = GRID_CONSTRAINTS.MAX_PRODUCTS_PER_ROW
 
 /**
  * Validate a single grid row
