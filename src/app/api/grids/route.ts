@@ -29,7 +29,10 @@ export async function POST(request: NextRequest) {
         // Validar que existe el campo rows
         if (!body.rows || !Array.isArray(body.rows)) {
             return NextResponse.json(
-                { success: false, message: 'Invalid request: missing rows array' },
+                {
+                    success: false,
+                    message: 'Invalid request: missing rows array',
+                },
                 { status: 400 }
             )
         }
@@ -60,11 +63,14 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(response, { status: 201 })
     } catch (error) {
-        console.error('❌ [API /grids] Error saving grid:', error)
+        console.error(' [API /grids] Error saving grid:', error)
         return NextResponse.json(
             {
                 success: false,
-                message: error instanceof Error ? error.message : 'Failed to save grid',
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to save grid',
             },
             { status: 500 }
         )

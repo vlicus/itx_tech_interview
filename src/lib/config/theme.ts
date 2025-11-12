@@ -1,3 +1,8 @@
+/**
+ * HeroUI Theme Configuration
+ * Custom theme colors and configuration for the application
+ */
+
 import { heroui } from '@heroui/react'
 
 export default heroui({

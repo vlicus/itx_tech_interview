@@ -45,6 +45,23 @@ export interface ISaveGridResponse {
 }
 
 /**
+ * Stored grid entry (from server storage)
+ */
+export interface IStoredGrid {
+  id: string
+  timestamp: string
+  data: ISaveGridRequest
+}
+
+/**
+ * GET /grids Response (all saved grids)
+ */
+export interface IGetSavedGridsResponse {
+  grids: IStoredGrid[]
+  count: number
+}
+
+/**
  * Generic API error response
  */
 export interface IApiError {

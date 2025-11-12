@@ -201,9 +201,10 @@ export const useGridStore = create<TGridStore>()(
                             const finalProductIds = productIds.slice(0, 3)
 
                             // Usar alineación dinámica según cantidad de productos
-                            const dynamicTemplateId = getDefaultTemplateForProductCount(
-                                finalProductIds.length
-                            )
+                            const dynamicTemplateId =
+                                getDefaultTemplateForProductCount(
+                                    finalProductIds.length
+                                )
 
                             const newRow: IGridRow = {
                                 id: `row_${Date.now()}_${Math.random()
@@ -213,7 +214,10 @@ export const useGridStore = create<TGridStore>()(
                                 templateId: dynamicTemplateId, // ✨ Alineación dinámica
                                 order: state.rows.length,
                             }
-                            console.log('🟢 [STORE] newRow creada con template dinámico:', newRow)
+                            console.log(
+                                '🟢 [STORE] newRow creada con template dinámico:',
+                                newRow
+                            )
                             state.rows.push(newRow)
                             console.log(
                                 '🟢 [STORE] state.rows después de push:',
@@ -417,7 +421,6 @@ export const useGridStore = create<TGridStore>()(
         {
             name: 'product-grid-storage',
             storage: createJSONStorage(() => localStorage),
-            // Only persist grid data, not undo/redo history
             partialize: (state) => ({
                 rows: state.rows,
                 products: state.products,

@@ -14,6 +14,7 @@ import type {
     IGetTemplatesResponse,
     ISaveGridRequest,
     ISaveGridResponse,
+    IGetSavedGridsResponse,
 } from '@/types'
 
 /**
@@ -92,5 +93,28 @@ export async function saveGrid(
     } catch (error) {
         console.error('❌ [API Client] Error saving grid:', error)
         throw new Error('Failed to save grid to API')
+    }
+}
+
+/**
+ * Fetch all saved grids from server
+ *
+ * Hace un GET al API Route /api/grids sin ID para obtener la lista completa
+ *
+ * @returns Promise with list of saved grids
+ */
+export async function getSavedGrids(): Promise<IGetSavedGridsResponse> {
+    try {
+        const response = await ofetch<IGetSavedGridsResponse>('/api/grids', {
+            method: 'GET',
+            retry: 1,
+            timeout: 10000,
+        })
+
+        console.log('✅ [API Client] Saved grids fetched:', response.count)
+        return response
+    } catch (error) {
+        console.error('❌ [API Client] Error fetching saved grids:', error)
+        throw new Error('Failed to fetch saved grids from API')
     }
 }

@@ -47,7 +47,15 @@ interface ActiveDragItem {
  * RowDragGhost - Visual representation of a row being dragged
  */
 const RowDragGhost = React.memo(
-    ({ row, products, index }: { row: IGridRow; products: IProduct[]; index: number }) => {
+    ({
+        row,
+        products,
+        index,
+    }: {
+        row: IGridRow
+        products: IProduct[]
+        index: number
+    }) => {
         return (
             <div className="w-full max-w-7xl opacity-100">
                 <Card className="w-full shadow-2xl ring-4 ring-primary-500">
@@ -57,7 +65,8 @@ const RowDragGhost = React.memo(
                                 Row {index + 1} - Moving...
                             </Chip>
                             <span className="text-sm text-default-600">
-                                {products.length} {products.length === 1 ? 'product' : 'products'}
+                                {products.length}{' '}
+                                {products.length === 1 ? 'product' : 'products'}
                             </span>
                         </div>
                     </CardHeader>
@@ -73,7 +82,7 @@ const RowDragGhost = React.memo(
                                             <img
                                                 src={product.imageUrl}
                                                 alt={product.name}
-                                                className="w-full object-cover aspect-[2/3]"
+                                                className="w-full object-cover aspect-2/3"
                                             />
                                         </CardBody>
                                         <div className="p-3 flex flex-col gap-1">
@@ -235,7 +244,9 @@ export const GridRowList = React.memo(
                             easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
                         }}
                     >
-                        {activeItem && activeItem.type === 'PRODUCT' && activeItem.product ? (
+                        {activeItem &&
+                        activeItem.type === 'PRODUCT' &&
+                        activeItem.product ? (
                             <div className="opacity-100 shadow-2xl rotate-3 scale-110 transition-all duration-200 filter-none backdrop-blur-none cursor-grabbing">
                                 <ProductCard
                                     product={activeItem.product}
@@ -244,7 +255,9 @@ export const GridRowList = React.memo(
                                     isDragging={true}
                                 />
                             </div>
-                        ) : activeItem && activeItem.type === 'ROW' && activeItem.rowData ? (
+                        ) : activeItem &&
+                          activeItem.type === 'ROW' &&
+                          activeItem.rowData ? (
                             <div className="opacity-100 scale-105 transition-all duration-200 filter-none backdrop-blur-none cursor-grabbing">
                                 <RowDragGhost
                                     row={activeItem.rowData.row}

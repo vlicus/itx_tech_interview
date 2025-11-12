@@ -30,6 +30,8 @@ export type {
     IGetTemplatesResponse,
     ISaveGridRequest,
     ISaveGridResponse,
+    IStoredGrid,
+    IGetSavedGridsResponse,
     IApiError,
 } from './api'
 

@@ -8,6 +8,7 @@ import { Button, Tooltip, Chip } from '@heroui/react'
 import { GridStats } from './GridStats'
 import { ZoomControls } from '@/components/ui/ZoomControls'
 import { Icon } from '@iconify/react'
+import { redirect, RedirectType } from 'next/navigation'
 
 interface GridToolbarProps {
     rowCount: number
@@ -36,6 +37,16 @@ export const GridToolbar = React.memo(
                         {/* Desktop Layout */}
                         <div className="hidden lg:flex items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
+                                <Button
+                                    isIconOnly
+                                    variant="flat"
+                                    color="default"
+                                    onPress={() =>
+                                        redirect('/', RedirectType.push)
+                                    }
+                                >
+                                    <Icon icon="akar-icons:home" />
+                                </Button>
                                 <GridStats
                                     rowCount={rowCount}
                                     productCount={productCount}

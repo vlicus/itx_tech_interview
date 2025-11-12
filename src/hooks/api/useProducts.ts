@@ -3,7 +3,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query'
-import { getProducts } from '@/services/api'
+import { getProducts } from '@/lib/api'
 import type { IGetProductsResponse } from '@/types'
 
 export function useProducts(productIds: string[]) {
