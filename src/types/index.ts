@@ -1,15 +1,7 @@
-/**
- * Central Type Exports
- * Re-exports all type definitions for easy importing
- */
-
-// Product types
 export type { IProduct, IProductWithMeta } from './product'
 
-// Template types
 export type { ITemplate, TTemplateAlignment } from './template'
 
-// Grid types
 export type {
     IGridRow,
     IGridState,
@@ -23,7 +15,6 @@ export type {
 
 export { MIN_PRODUCTS_PER_ROW, MAX_PRODUCTS_PER_ROW } from './grid'
 
-// API types
 export type {
     IGetProductsRequest,
     IGetProductsResponse,
@@ -35,7 +26,6 @@ export type {
     IApiError,
 } from './api'
 
-// UI types
 export type { IUIState, TToastType, IToast, TDeviceType } from './ui'
 
 export {

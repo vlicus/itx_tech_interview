@@ -1,10 +1,5 @@
 'use client'
 
-/**
- * GridRow Component
- * Represents a row in the product grid with drag-and-drop support
- */
-
 import { useMemo, useRef, useCallback, useEffect } from 'react'
 import { useSortable, SortableContext } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
@@ -25,7 +20,7 @@ interface GridRowProps {
     index: number
     isSelected: boolean
     onSelect: () => void
-    overId: string | null // Element being hovered over during drag
+    overId: string | null
     validationErrors?: string[]
 }
 
@@ -34,13 +29,11 @@ export function GridRow({
     index,
     isSelected,
     onSelect,
-    overId, // Element being hovered over during drag
+    overId,
     validationErrors = [],
 }: GridRowProps) {
-    // Fetch products for this row using TanStack Query
     const { data: productsData } = useProducts(row.productIds)
 
-    // Fetch templates using TanStack Query
     const { data: templatesData } = useTemplates()
     const templates = templatesData?.templates || []
 
@@ -53,38 +46,30 @@ export function GridRow({
         ? getTemplateById(templates, row.templateId)
         : null
 
-    // Refs for throttling drag over events
     const dragOverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const lastDragOverTimeRef = useRef<number>(0)
 
-    // Memoized check for row capacity (prevents blink on re-renders)
     const rowProductCount = useMemo(
         () => row.productIds.length,
         [row.productIds.length]
     )
 
-    // ✅ STRICT DROP BLOCKING: Only allow drop if row has less than 3 products
     const canAcceptDrop = useMemo(() => rowProductCount < 3, [rowProductCount])
 
-    // Check if row is full (for negative feedback)
     const isRowFull = useMemo(() => rowProductCount >= 3, [rowProductCount])
 
-    // Throttled drag over handler - prevents excessive re-renders
     const handleDragOverThrottled = useCallback((event: React.DragEvent) => {
         const now = Date.now()
         const timeSinceLastCall = now - lastDragOverTimeRef.current
 
-        // Throttle to 50ms intervals
         if (timeSinceLastCall >= 50) {
             lastDragOverTimeRef.current = now
             event.preventDefault()
         } else {
-            // Clear existing timeout
             if (dragOverTimeoutRef.current) {
                 clearTimeout(dragOverTimeoutRef.current)
             }
 
-            // Schedule for next interval
             dragOverTimeoutRef.current = setTimeout(() => {
                 lastDragOverTimeRef.current = Date.now()
                 event.preventDefault()
@@ -92,7 +77,6 @@ export function GridRow({
         }
     }, [])
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             if (dragOverTimeoutRef.current) {
@@ -101,7 +85,6 @@ export function GridRow({
         }
     }, [])
 
-    // Sortable for the entire row
     const {
         attributes: rowAttributes,
         listeners: rowListeners,
@@ -118,7 +101,6 @@ export function GridRow({
         },
     })
 
-    // Droppable for products with stable data object
     const dropData = useMemo(
         () => ({
             rowId: row.id,
@@ -132,7 +114,7 @@ export function GridRow({
     const { setNodeRef: setDropRef, isOver } = useDroppable({
         id: `droppable-${row.id}`,
         data: dropData,
-        disabled: !canAcceptDrop, // ✅ Disable drop if row is full
+        disabled: !canAcceptDrop,
     })
 
     const rowStyle = {
@@ -140,53 +122,40 @@ export function GridRow({
         transition: rowTransition,
     }
 
-    // Get products from query result
     const rowProducts = useMemo(() => {
         if (!productsData?.products) return []
-        // Create a map for faster lookup
-        const productsMap = new Map(
-            productsData.products.map((p) => [p.id, p])
-        )
-        // Map productIds to products, preserving order
+        const productsMap = new Map(productsData.products.map((p) => [p.id, p]))
         return row.productIds
             .map((id) => productsMap.get(id))
             .filter((p): p is IProduct => p !== undefined)
     }, [productsData, row.productIds])
 
-    // Create sortable IDs for products (must match ProductCard's useSortable id)
     const productSortableIds = row.productIds.map(
         (productId) => `${row.id}-${productId}`
     )
 
     const hasErrors = validationErrors.length > 0
 
-    // Check if we're hovering over THIS row's droppable area
-    // (overId tracks hover even when droppable is disabled)
     const isHoveringThisRow = useMemo(() => {
         if (!overId) return false
-        // Check if overId matches this row's droppable ID
         return overId === `droppable-${row.id}`
     }, [overId, row.id])
 
-    // Memoized hover state calculation (prevents blink on full rows)
     const isHovered = useMemo(
         () => isOver || isHoveringThisRow,
         [isOver, isHoveringThisRow]
     )
 
-    // Calculate if this is a blocked hover (hovering over full row)
     const isBlockedHover = useMemo(
         () => isHoveringThisRow && isRowFull,
         [isHoveringThisRow, isRowFull]
     )
 
-    // Calculate if this is a valid hover (hovering over available row)
     const isValidHover = useMemo(
         () => isHoveringThisRow && !isRowFull,
         [isHoveringThisRow, isRowFull]
     )
 
-    // Calculate alignment class based on template (memoized)
     const alignmentClass = useMemo(() => {
         const alignmentMap: Record<string, string> = {
             LEFT: 'justify-start',
@@ -195,7 +164,7 @@ export function GridRow({
         }
         return template
             ? alignmentMap[template.alignment as string] ?? 'justify-start'
-            : 'justify-end' // Default: Derecha (RIGHT) when no template initially
+            : 'justify-end'
     }, [template])
 
     return (
@@ -212,10 +181,8 @@ export function GridRow({
                     'w-full transition-all duration-200 shadow-lg hover:shadow-xl',
                     isSelected && 'ring-2 ring-primary shadow-primary/20',
                     hasErrors && 'ring-2 ring-danger shadow-danger/20',
-                    // ✅ Valid hover: Green feedback
                     isValidHover &&
                         'ring-4 ring-success-500 shadow-success/30 scale-[1.01] bg-success-50/30',
-                    // 🚫 Blocked hover: Red/gray negative feedback
                     isBlockedHover &&
                         'ring-4 ring-danger-500 shadow-danger/30 bg-danger-50/20 cursor-not-allowed'
                 )}
@@ -223,19 +190,15 @@ export function GridRow({
                 <CardHeader
                     className={cn(
                         'flex flex-row items-center justify-between gap-2 px-6 py-4 border-b transition-all duration-200',
-                        // ✅ Valid hover: Green header
                         isValidHover &&
                             'bg-linear-to-r from-success-100 to-success-50 border-success-300',
-                        // 🚫 Blocked hover: Red header
                         isBlockedHover &&
                             'bg-linear-to-r from-danger-100 to-danger-50 border-danger-300',
-                        // Default: Gray header
                         !isHovered &&
                             'bg-linear-to-r from-default-50 to-default-100/50 border-default-200'
                     )}
                 >
                     <div className="flex items-center gap-3">
-                        {/* Drag handle */}
                         <Button
                             {...rowAttributes}
                             {...rowListeners}
@@ -255,7 +218,6 @@ export function GridRow({
                             Row {index + 1}
                         </Chip>
 
-                        {/* Product counter with visual feedback */}
                         <Chip
                             size="md"
                             variant="bordered"
@@ -333,16 +295,15 @@ export function GridRow({
                     <CardBody
                         className={cn(
                             'min-h-80 p-6 transition-all duration-200',
-                            // ✅ Valid hover: Green dashed border
+
                             isValidHover &&
                                 'bg-success-100/40 backdrop-blur-sm border-2 border-success-400 border-dashed rounded-lg',
-                            // 🚫 Blocked hover: Red dashed border
+
                             isBlockedHover &&
                                 'bg-danger-100/30 backdrop-blur-sm border-2 border-danger-400 border-dashed rounded-lg'
                         )}
                         onClick={onSelect}
                     >
-                        {/* Product grid with template alignment */}
                         <SortableContext items={productSortableIds}>
                             <div
                                 className={cn(
@@ -361,14 +322,12 @@ export function GridRow({
                             </div>
                         </SortableContext>
 
-                        {/* Empty state */}
                         {rowProducts.length === 0 && (
                             <div className="flex items-center justify-center h-full text-default-400">
                                 <p>Drag products here</p>
                             </div>
                         )}
 
-                        {/* Validation errors */}
                         {hasErrors && (
                             <div className="mt-4 p-3 bg-danger-50 rounded-lg">
                                 <p className="text-sm text-danger font-medium">

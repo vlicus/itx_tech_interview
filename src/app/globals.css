@@ -5,7 +5,6 @@
 @custom-variant dark (&:where(.dark, .dark *), &:is(.dark *));
 :root,
 :host {
-    /* --color-slate-50: "#F8FAFC"; --color-slate-100: "#F1F5F9"; --color-slate-200: "#E2E8F0"; --color-slate-300: "#CAD5E2"; --color-slate-400: "#90A1B9"; --color-slate-500: "#62748E"; --color-slate-600: "#45556C"; --color-slate-700: "#314158"; --color-slate-800: "#1D293D"; --color-slate-900: "#0F172B"; --color-slate-950: "#020618"; */
     --text-color-dimmed: var(--color-slate-400);
     --text-color-muted: var(--color-slate-500);
     --text-color-toned: var(--color-slate-600);

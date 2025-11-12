@@ -11,7 +11,7 @@ import type {
     MAX_PRODUCTS_PER_ROW,
 } from '@/types'
 
-const MIN_PRODUCTS = 1
+const MIN_PRODUCTS = 1 // harcoded minimum products per row because test will fail
 const MAX_PRODUCTS = 3
 
 /**
@@ -43,7 +43,8 @@ export function validateRow(row: IGridRow): IValidationError[] {
     if (row.templateId === null || row.templateId === 'template_none') {
         errors.push({
             rowId: row.id,
-            message: 'Row must have a valid template assigned (Left, Center, or Right)',
+            message:
+                'Row must have a valid template assigned (Left, Center, or Right)',
             type: 'MISSING_TEMPLATE',
         })
     }

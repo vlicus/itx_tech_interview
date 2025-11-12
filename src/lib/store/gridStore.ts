@@ -1,38 +1,21 @@
-/**
- * Grid Store
- * Manages grid state with localStorage persistence
- */
-
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { produce } from 'immer'
-import type { IGridState, IGridRow, IProduct } from '@/types'
+import type { IGridState, IGridRow } from '@/types'
 
-/**
- * Helper: Get default template based on number of products in row
- * - 1 producto → Alineación derecha (RIGHT)
- * - 2 productos → Alineación izquierda (LEFT)
- * - 3 productos → Alineación centro (CENTER)
- */
 function getDefaultTemplateForProductCount(productCount: number): string {
     if (productCount === 1) return 'template_right'
     if (productCount === 2) return 'template_left'
     if (productCount === 3) return 'template_center'
-    // Fallback: si está vacío o tiene más de 3 (edge case), usar right
     return 'template_right'
 }
 
-/**
- * Grid actions interface
- */
 interface IGridActions {
-    // Row management
     addRow: () => void
     addRowWithProducts: (productIds: string[]) => void
     removeRow: (rowId: string) => void
     moveRow: (fromIndex: number, toIndex: number) => void
 
-    // Product-Row operations
     addProductToRow: (productId: string, rowId: string) => void
     removeProductFromRow: (productId: string, rowId: string) => void
     moveProductWithinRow: (
@@ -47,283 +30,224 @@ interface IGridActions {
         targetIndex: number
     ) => void
 
-    // Template assignment
     assignTemplateToRow: (rowId: string, templateId: string) => void
     unassignTemplateFromRow: (rowId: string) => void
 
-    // Row selection
     selectRow: (rowId: string | null) => void
 
-    // Reset
     resetGrid: () => void
 }
 
-/**
- * Combined grid store type
- */
 type TGridStore = IGridState & IGridActions
 
-/**
- * Initial grid state
- */
 const initialState: IGridState = {
     rows: [],
     selectedRowId: null,
 }
 
-/**
- * Create grid store with persistence
- */
 export const useGridStore = create<TGridStore>()(
     persist(
         (set) => ({
-                ...initialState,
+            ...initialState,
 
-                // Row management
-                addRow: () =>
-                    set(
-                        produce((state: IGridState) => {
-                            const newRow: IGridRow = {
-                                id: `row_${Date.now()}_${Math.random()
-                                    .toString(36)
-                                    .substr(2, 9)}`,
-                                productIds: [],
-                                templateId: 'template_right', // Filas vacías por defecto: derecha
-                                order: state.rows.length,
-                            }
-                            console.log('Adding new row', newRow)
-                            state.rows.push(newRow)
-                        })
-                    ),
+            addRow: () =>
+                set(
+                    produce((state: IGridState) => {
+                        const newRow: IGridRow = {
+                            id: `row_${Date.now()}_${Math.random()
+                                .toString(36)
+                                .slice(2, 11)}`,
+                            productIds: [],
+                            templateId: 'template_right',
+                            order: state.rows.length,
+                        }
+                        state.rows.push(newRow)
+                    })
+                ),
 
-                addRowWithProducts: (productIds) =>
-                    set(
-                        produce((state: IGridState) => {
-                            console.log(
-                                '🟢 [STORE] addRowWithProducts llamado con:',
-                                productIds
-                            )
-                            console.log(
-                                '🟢 [STORE] state antes de addRowWithProducts:',
-                                state
+            addRowWithProducts: (productIds) =>
+                set(
+                    produce((state: IGridState) => {
+                        const finalProductIds = productIds.slice(0, 3)
+
+                        const dynamicTemplateId =
+                            getDefaultTemplateForProductCount(
+                                finalProductIds.length
                             )
 
-                            // Ensure max 3 products
-                            const finalProductIds = productIds.slice(0, 3)
+                        const newRow: IGridRow = {
+                            id: `row_${Date.now()}_${Math.random()
+                                .toString(36)
+                                .slice(2, 11)}`,
+                            productIds: finalProductIds,
+                            templateId: dynamicTemplateId,
+                            order: state.rows.length,
+                        }
 
-                            // Usar alineación dinámica según cantidad de productos
-                            const dynamicTemplateId =
-                                getDefaultTemplateForProductCount(
-                                    finalProductIds.length
-                                )
+                        state.rows.push(newRow)
+                    })
+                ),
 
-                            const newRow: IGridRow = {
-                                id: `row_${Date.now()}_${Math.random()
-                                    .toString(36)
-                                    .substr(2, 9)}`,
-                                productIds: finalProductIds,
-                                templateId: dynamicTemplateId, // ✨ Alineación dinámica
-                                order: state.rows.length,
-                            }
-                            console.log(
-                                '🟢 [STORE] newRow creada con template dinámico:',
-                                newRow
-                            )
-                            state.rows.push(newRow)
-                            console.log(
-                                '🟢 [STORE] state.rows después de push:',
-                                state.rows.length,
-                                state.rows
-                            )
-                        })
-                    ),
-
-                removeRow: (rowId) =>
-                    set(
-                        produce((state: IGridState) => {
-                            const index = state.rows.findIndex(
-                                (row) => row.id === rowId
-                            )
-                            if (index !== -1) {
-                                state.rows.splice(index, 1)
-                                // Update order for remaining rows
-                                state.rows.forEach((row, idx) => {
-                                    row.order = idx
-                                })
-                            }
-                            if (state.selectedRowId === rowId) {
-                                state.selectedRowId = null
-                            }
-                        })
-                    ),
-
-                moveRow: (fromIndex, toIndex) =>
-                    set(
-                        produce((state: IGridState) => {
-                            const [movedRow] = state.rows.splice(fromIndex, 1)
-                            state.rows.splice(toIndex, 0, movedRow)
-                            // Update order for all rows
+            removeRow: (rowId) =>
+                set(
+                    produce((state: IGridState) => {
+                        const index = state.rows.findIndex(
+                            (row) => row.id === rowId
+                        )
+                        if (index !== -1) {
+                            state.rows.splice(index, 1)
                             state.rows.forEach((row, idx) => {
                                 row.order = idx
                             })
+                        }
+                        if (state.selectedRowId === rowId) {
+                            state.selectedRowId = null
+                        }
+                    })
+                ),
+
+            moveRow: (fromIndex, toIndex) =>
+                set(
+                    produce((state: IGridState) => {
+                        const [movedRow] = state.rows.splice(fromIndex, 1)
+                        state.rows.splice(toIndex, 0, movedRow)
+                        state.rows.forEach((row, idx) => {
+                            row.order = idx
                         })
-                    ),
+                    })
+                ),
 
-                // Product-Row operations
-                addProductToRow: (productId, rowId) =>
-                    set(
-                        produce((state: IGridState) => {
-                            const row = state.rows.find((r) => r.id === rowId)
-                            if (row && row.productIds.length < 3) {
-                                // MAX_PRODUCTS_PER_ROW
-                                row.productIds.push(productId)
-                            }
-                        })
-                    ),
+            addProductToRow: (productId, rowId) =>
+                set(
+                    produce((state: IGridState) => {
+                        const row = state.rows.find((r) => r.id === rowId)
+                        if (row && row.productIds.length < 3) {
+                            row.productIds.push(productId)
+                        }
+                    })
+                ),
 
-                removeProductFromRow: (productId, rowId) =>
-                    set(
-                        produce((state: IGridState) => {
-                            const row = state.rows.find((r) => r.id === rowId)
-                            if (row) {
-                                row.productIds = row.productIds.filter(
-                                    (id) => id !== productId
-                                )
-                            }
-                        })
-                    ),
-
-                moveProductWithinRow: (rowId, fromIndex, toIndex) =>
-                    set(
-                        produce((state: IGridState) => {
-                            const row = state.rows.find((r) => r.id === rowId)
-                            if (row) {
-                                const [movedProduct] = row.productIds.splice(
-                                    fromIndex,
-                                    1
-                                )
-                                row.productIds.splice(toIndex, 0, movedProduct)
-                            }
-                        })
-                    ),
-
-                moveProductBetweenRows: (
-                    productId,
-                    sourceRowId,
-                    targetRowId,
-                    targetIndex
-                ) =>
-                    set(
-                        produce((state: IGridState) => {
-                            const sourceRow = state.rows.find(
-                                (r) => r.id === sourceRowId
-                            )
-                            const targetRow = state.rows.find(
-                                (r) => r.id === targetRowId
-                            )
-
-                            if (!sourceRow || !targetRow) return
-
-                            // Safety check: if same row, use moveProductWithinRow instead
-                            if (sourceRowId === targetRowId) {
-                                console.warn(
-                                    '⚠️ [STORE] moveProductBetweenRows called with same row, use moveProductWithinRow instead'
-                                )
-                                return
-                            }
-
-                            // ✅ VALIDATE FIRST: Check target row has space BEFORE removing from source
-                            if (targetRow.productIds.length >= 3) {
-                                console.error(
-                                    '❌ [STORE] Target row is full! This should not happen - drop should be blocked earlier'
-                                )
-                                return // 🛑 Return WITHOUT touching source row
-                            }
-
-                            // Verify product exists in source row
-                            const productIndex =
-                                sourceRow.productIds.indexOf(productId)
-                            if (productIndex === -1) {
-                                console.warn(
-                                    '⚠️ [STORE] Product not found in source row:',
-                                    productId
-                                )
-                                return
-                            }
-
-                            // NOW it's safe to remove from source row
-                            sourceRow.productIds = sourceRow.productIds.filter(
+            removeProductFromRow: (productId, rowId) =>
+                set(
+                    produce((state: IGridState) => {
+                        const row = state.rows.find((r) => r.id === rowId)
+                        if (row) {
+                            row.productIds = row.productIds.filter(
                                 (id) => id !== productId
                             )
+                        }
+                    })
+                ),
 
-                            // Insert product at specified index or end
-                            if (
-                                targetIndex >= 0 &&
-                                targetIndex <= targetRow.productIds.length
-                            ) {
-                                console.log(
-                                    '✅ [STORE] Inserting at index:',
-                                    targetIndex
-                                )
-                                targetRow.productIds.splice(
-                                    targetIndex,
-                                    0,
-                                    productId
-                                )
-                            } else {
-                                console.log('✅ [STORE] Adding to end')
-                                targetRow.productIds.push(productId)
-                            }
-                        })
-                    ),
-
-                // Template assignment
-                assignTemplateToRow: (rowId, templateId) =>
-                    set(
-                        produce((state: IGridState) => {
-                            const row = state.rows.find((r) => r.id === rowId)
-                            if (row) {
-                                row.templateId = templateId
-                            }
-                        })
-                    ),
-
-                unassignTemplateFromRow: (rowId) =>
-                    set(
-                        produce((state: IGridState) => {
-                            const row = state.rows.find((r) => r.id === rowId)
-                            if (row) {
-                                row.templateId = null
-                            }
-                        })
-                    ),
-
-                // Row selection
-                selectRow: (rowId) =>
-                    set(
-                        produce((state: IGridState) => {
-                            state.selectedRowId = rowId
-                        })
-                    ),
-
-                // Reset
-                resetGrid: () =>
-                    set(
-                        produce((state: IGridState) => {
-                            console.log(
-                                '🟢 [STORE] resetGrid llamado - ANTES:',
-                                {
-                                    rows: state.rows.length,
-                                }
+            moveProductWithinRow: (rowId, fromIndex, toIndex) =>
+                set(
+                    produce((state: IGridState) => {
+                        const row = state.rows.find((r) => r.id === rowId)
+                        if (row) {
+                            const [movedProduct] = row.productIds.splice(
+                                fromIndex,
+                                1
                             )
-                            state.rows = []
-                            state.selectedRowId = null
-                            console.log(
-                                '🟢 [STORE] resetGrid completado - DESPUÉS: rows=0'
+                            row.productIds.splice(toIndex, 0, movedProduct)
+                        }
+                    })
+                ),
+
+            moveProductBetweenRows: (
+                productId,
+                sourceRowId,
+                targetRowId,
+                targetIndex
+            ) =>
+                set(
+                    produce((state: IGridState) => {
+                        const sourceRow = state.rows.find(
+                            (r) => r.id === sourceRowId
+                        )
+                        const targetRow = state.rows.find(
+                            (r) => r.id === targetRowId
+                        )
+
+                        if (!sourceRow || !targetRow) return
+
+                        if (sourceRowId === targetRowId) {
+                            console.warn(
+                                '⚠️ [STORE] moveProductBetweenRows called with same row, use moveProductWithinRow instead'
                             )
-                        })
-                    ),
-            }),
+                            return
+                        }
+
+                        if (targetRow.productIds.length >= 3) {
+                            console.error(
+                                '❌ [STORE] Target row is full! This should not happen - drop should be blocked earlier'
+                            )
+                            return
+                        }
+
+                        const productIndex =
+                            sourceRow.productIds.indexOf(productId)
+                        if (productIndex === -1) {
+                            console.warn(
+                                '⚠️ [STORE] Product not found in source row:',
+                                productId
+                            )
+                            return
+                        }
+
+                        sourceRow.productIds = sourceRow.productIds.filter(
+                            (id) => id !== productId
+                        )
+
+                        if (
+                            targetIndex >= 0 &&
+                            targetIndex <= targetRow.productIds.length
+                        ) {
+                            targetRow.productIds.splice(
+                                targetIndex,
+                                0,
+                                productId
+                            )
+                        } else {
+                            targetRow.productIds.push(productId)
+                        }
+                    })
+                ),
+
+            assignTemplateToRow: (rowId, templateId) =>
+                set(
+                    produce((state: IGridState) => {
+                        const row = state.rows.find((r) => r.id === rowId)
+                        if (row) {
+                            row.templateId = templateId
+                        }
+                    })
+                ),
+
+            unassignTemplateFromRow: (rowId) =>
+                set(
+                    produce((state: IGridState) => {
+                        const row = state.rows.find((r) => r.id === rowId)
+                        if (row) {
+                            row.templateId = null
+                        }
+                    })
+                ),
+
+            selectRow: (rowId) =>
+                set(
+                    produce((state: IGridState) => {
+                        state.selectedRowId = rowId
+                    })
+                ),
+
+            resetGrid: () =>
+                set(
+                    produce((state: IGridState) => {
+                        state.rows = []
+                        state.selectedRowId = null
+                    })
+                ),
+        }),
         {
             name: 'product-grid-storage',
             storage: createJSONStorage(() => localStorage),

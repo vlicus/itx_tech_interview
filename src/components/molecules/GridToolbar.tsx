@@ -1,8 +1,3 @@
-/**
- * GridToolbar - Molecular Component
- * Main toolbar with stats and actions
- */
-
 import React from 'react'
 import { Button, Tooltip, Chip } from '@heroui/react'
 import { GridStats } from './GridStats'
@@ -34,7 +29,6 @@ export const GridToolbar = React.memo(
             <div className={className}>
                 <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-neutral-200 shadow-sm">
                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-                        {/* Desktop Layout */}
                         <div className="hidden lg:flex items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 <Button
@@ -55,7 +49,6 @@ export const GridToolbar = React.memo(
                             </div>
 
                             <div className="flex items-center gap-3">
-                                {/* Unsaved changes indicator */}
                                 {hasUnsavedChanges && (
                                     <Chip
                                         size="md"
@@ -66,7 +59,6 @@ export const GridToolbar = React.memo(
                                         Unsaved changes
                                     </Chip>
                                 )}
-                                {/* Save Button */}
                                 <Tooltip
                                     className="bg-white rounded-full"
                                     content={
@@ -94,7 +86,6 @@ export const GridToolbar = React.memo(
                             </div>
                         </div>
 
-                        {/* Mobile Layout */}
                         <div className="flex lg:hidden flex-col gap-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -102,7 +93,6 @@ export const GridToolbar = React.memo(
                                         rowCount={rowCount}
                                         productCount={productCount}
                                     />
-                                    {/* Unsaved changes indicator */}
                                     {hasUnsavedChanges && (
                                         <Chip
                                             size="sm"
@@ -118,7 +108,6 @@ export const GridToolbar = React.memo(
                             <div className="flex items-center justify-between gap-2">
                                 <ZoomControls />
 
-                                {/* Save Button */}
                                 <Tooltip
                                     className="bg-white rounded-full"
                                     content={

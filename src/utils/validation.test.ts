@@ -322,14 +322,24 @@ describe('groupErrorsByRow', () => {
         const result = groupErrorsByRow(errors)
 
         expect(result).toEqual({
-            'row-1': [{ rowId: 'row-1', message: 'Error', type: 'MISSING_PRODUCTS' }],
+            'row-1': [
+                { rowId: 'row-1', message: 'Error', type: 'MISSING_PRODUCTS' },
+            ],
         })
     })
 
     it('should maintain error order within groups', () => {
         const errors: IValidationError[] = [
-            { rowId: 'row-1', message: 'First error', type: 'MISSING_PRODUCTS' },
-            { rowId: 'row-1', message: 'Second error', type: 'MISSING_TEMPLATE' },
+            {
+                rowId: 'row-1',
+                message: 'First error',
+                type: 'MISSING_PRODUCTS',
+            },
+            {
+                rowId: 'row-1',
+                message: 'Second error',
+                type: 'MISSING_TEMPLATE',
+            },
         ]
 
         const result = groupErrorsByRow(errors)

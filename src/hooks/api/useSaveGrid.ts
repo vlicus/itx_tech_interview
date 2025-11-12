@@ -1,19 +1,23 @@
-/**
- * TanStack Query mutation hook for saving grid configuration
- */
-
 import { useMutation } from '@tanstack/react-query'
 import { saveGrid } from '@/lib/api'
 import type { ISaveGridRequest, ISaveGridResponse } from '@/types'
+import { useUIStore } from '@/lib/store'
 
 export function useSaveGrid() {
+    const addToast = useUIStore((state) => state.addToast)
     return useMutation<ISaveGridResponse, Error, ISaveGridRequest>({
         mutationFn: saveGrid,
-        onSuccess: (data) => {
-            console.log(' [useSaveGrid] Grid saved successfully:', data.gridId)
+        onSuccess: () => {
+            addToast({
+                type: 'success',
+                message: 'Grid saved successfully',
+            })
         },
-        onError: (error) => {
-            console.error(' [useSaveGrid] Failed to save grid:', error)
+        onError: () => {
+            addToast({
+                type: 'error',
+                message: 'Failed to save Grid',
+            })
         },
     })
 }

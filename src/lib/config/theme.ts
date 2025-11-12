@@ -1,8 +1,3 @@
-/**
- * HeroUI Theme Configuration
- * Custom theme colors and configuration for the application
- */
-
 import { heroui } from '@heroui/react'
 
 export default heroui({
@@ -36,9 +31,7 @@ export default heroui({
                     foreground: '#020618',
                     DEFAULT: '#45556C',
                 },
-                // ...other color definitions
             },
         },
-        // You can also define for dark or custom themes
     },
 })

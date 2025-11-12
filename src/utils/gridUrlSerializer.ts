@@ -1,46 +1,17 @@
-/**
- * Grid URL Serialization Utilities
- * Handles encoding/decoding grid state to/from URL parameters
- */
+import type { IGridRow } from '@/types'
 
-import type { IGridRow, IGridState } from '@/types'
-
-/**
- * Serialized grid format:
- * grid=r1:id1,id2:templateId|r2:id3,id4,id5:templateId|...
- *
- * Example:
- * grid=r1:product_1,product_2:template_left|r2:product_3:template_right
- *
- * Components:
- * - Rows separated by '|'
- * - Each row: rowIndex:productIds:templateId
- * - Product IDs separated by ','
- */
-
-/**
- * Serialize grid state to compact URL format
- * @param rows - Grid rows to serialize
- * @returns Encoded grid string
- */
 export function serializeGridToURL(rows: IGridRow[]): string {
     if (!rows || rows.length === 0) return ''
 
     const serializedRows = rows.map((row, index) => {
         const productIds = row.productIds.join(',')
         const templateId = row.templateId || 'template_right'
-        // Formato: r{index}:{productIds}:{templateId}
         return `r${index + 1}:${productIds}:${templateId}`
     })
 
     return serializedRows.join('|')
 }
 
-/**
- * Extract all product IDs from grid state
- * @param rows - Grid rows
- * @returns Array of all unique product IDs
- */
 export function extractProductIds(rows: IGridRow[]): string[] {
     const allIds = new Set<string>()
     rows.forEach((row) => {
@@ -49,12 +20,6 @@ export function extractProductIds(rows: IGridRow[]): string[] {
     return Array.from(allIds)
 }
 
-/**
- * Create shareable URL with grid configuration
- * @param rows - Current grid rows
- * @param baseUrl - Base URL (pathname)
- * @returns Complete URL with grid and ids parameters
- */
 export function createShareableURL(rows: IGridRow[], baseUrl: string): string {
     const gridParam = serializeGridToURL(rows)
     const productIds = extractProductIds(rows)

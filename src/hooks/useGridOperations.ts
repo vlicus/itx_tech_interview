@@ -23,13 +23,15 @@ export function useGridOperations(
 
     const rows = useGridStore((state) => state.rows)
 
-    const isSaving = useUIStore((state) => state.isSaving)
-    const showValidationErrors = useUIStore((state) => state.showValidationErrors)
-    const setShowValidationErrors = useUIStore((state) => state.setShowValidationErrors)
+    const setShowValidationErrors = useUIStore(
+        (state) => state.setShowValidationErrors
+    )
     const hasUnsavedChanges = useUIStore((state) => state.hasUnsavedChanges)
     const setSaving = useUIStore((state) => state.setSaving)
     const addToast = useUIStore((state) => state.addToast)
-    const setHasUnsavedChanges = useUIStore((state) => state.setHasUnsavedChanges)
+    const setHasUnsavedChanges = useUIStore(
+        (state) => state.setHasUnsavedChanges
+    )
     const markAsSaved = useUIStore((state) => state.markAsSaved)
 
     useEffect(() => {
@@ -61,11 +63,13 @@ export function useGridOperations(
         try {
             await saveGridMutation.mutateAsync({ rows })
             queryClient.invalidateQueries({ queryKey: ['savedGrids'] })
+
             markAsSaved()
 
             addToast({
                 type: 'success',
-                message: 'Grid saved successfully! Also added to your history on the Home page.',
+                message:
+                    'Grid saved successfully! Also added to your history on the Home page.',
             })
         } catch (error) {
             addToast({

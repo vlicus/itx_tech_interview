@@ -1,8 +1,3 @@
-/**
- * GridStats - Molecular Component
- * Displays grid statistics (rows and products count)
- */
-
 import React from 'react'
 import { GridStat } from '@/components/atoms'
 

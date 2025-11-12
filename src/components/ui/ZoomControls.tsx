@@ -1,14 +1,9 @@
 'use client'
 
-/**
- * ZoomControls Component
- * Provides zoom controls for the grid editor
- */
-
-import { Button, ButtonGroup, Tooltip } from '@heroui/react'
+import { Button, Tooltip } from '@heroui/react'
 import { useUIStore } from '@/lib/store'
-import { ZoomInIcon, ZoomOutIcon, MaximizeIcon } from 'lucide-react'
 import { useEffect } from 'react'
+import { Icon } from '@iconify/react'
 
 export function ZoomControls() {
     const zoomLevel = useUIStore((state) => state.zoomLevel)
@@ -16,20 +11,16 @@ export function ZoomControls() {
     const zoomOut = useUIStore((state) => state.zoomOut)
     const resetZoom = useUIStore((state) => state.resetZoom)
 
-    // Keyboard shortcuts
     useEffect(() => {
         function handleKeyboard(e: KeyboardEvent) {
-            // Ctrl/Cmd + Plus
             if ((e.ctrlKey || e.metaKey) && e.key === '=') {
                 e.preventDefault()
                 zoomIn()
             }
-            // Ctrl/Cmd + Minus
             if ((e.ctrlKey || e.metaKey) && e.key === '-') {
                 e.preventDefault()
                 zoomOut()
             }
-            // Ctrl/Cmd + 0
             if ((e.ctrlKey || e.metaKey) && e.key === '0') {
                 e.preventDefault()
                 resetZoom()
@@ -55,7 +46,7 @@ export function ZoomControls() {
                         variant="flat"
                         className="rounded-none border-r border-neutral-200 hover:bg-neutral-100 transition-colors duration-200 flex items-center"
                     >
-                        <ZoomOutIcon className="w-4 h-4 " />
+                        <Icon icon="akar-icons:zoom-out" className="w-4 h-4 " />
                     </Button>
                 </Tooltip>
 
@@ -84,7 +75,7 @@ export function ZoomControls() {
                         variant="flat"
                         className="rounded-none hover:bg-neutral-100 transition-colors duration-200 flex items-center"
                     >
-                        <ZoomInIcon className="w-4 h-4" />
+                        <Icon icon="akar-icons:zoom-in" className="w-4 h-4" />
                     </Button>
                 </Tooltip>
             </div>

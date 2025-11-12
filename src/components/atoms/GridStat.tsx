@@ -1,8 +1,3 @@
-/**
- * GridStat - Atomic Component
- * Displays a single statistic with a label and value
- */
-
 import React from 'react'
 import { cn } from '@/utils'
 

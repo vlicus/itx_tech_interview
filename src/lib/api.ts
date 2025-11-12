@@ -1,13 +1,3 @@
-/**
- * API Service
- * Makes real HTTP requests to Next.js API Routes using ofetch
- *
- * ARQUITECTURA:
- * - Cliente (este archivo) → ofetch → API Routes (/app/api/*) → Datos
- * - Persistencia en memoria del servidor durante la vida del proceso
- * - TanStack Query maneja caching y sincronización en el cliente
- */
-
 import { ofetch } from 'ofetch'
 import type {
     IGetProductsResponse,
@@ -17,17 +7,10 @@ import type {
     IGetSavedGridsResponse,
 } from '@/types'
 
-/**
- * Fetch products by IDs from API Route
- *
- * @param productIds - Array of product IDs to fetch
- * @returns Promise with filtered products
- */
 export async function getProducts(
     productIds: string[]
 ): Promise<IGetProductsResponse> {
     try {
-        // Construir query string con IDs
         const idsParam = productIds.join(',')
 
         const response = await ofetch<IGetProductsResponse>(
@@ -39,10 +22,6 @@ export async function getProducts(
             }
         )
 
-        console.log(
-            '✅ [API Client] Products fetched:',
-            response.products.length
-        )
         return response
     } catch (error) {
         console.error('❌ [API Client] Error fetching products:', error)
@@ -50,11 +29,6 @@ export async function getProducts(
     }
 }
 
-/**
- * Fetch all available templates from API Route
- *
- * @returns Promise with all templates
- */
 export async function getTemplates(): Promise<IGetTemplatesResponse> {
     try {
         const response = await ofetch<IGetTemplatesResponse>('/api/templates', {
@@ -63,10 +37,6 @@ export async function getTemplates(): Promise<IGetTemplatesResponse> {
             timeout: 10000,
         })
 
-        console.log(
-            '✅ [API Client] Templates fetched:',
-            response.templates.length
-        )
         return response
     } catch (error) {
         console.error('❌ [API Client] Error fetching templates:', error)
@@ -74,15 +44,6 @@ export async function getTemplates(): Promise<IGetTemplatesResponse> {
     }
 }
 
-/**
- * Save grid configuration to server
- *
- * Hace un POST real al API Route /api/grids/id
- * Los datos persisten en memoria del servidor
- *
- * @param gridData - Grid configuration to save
- * @returns Promise with save response
- */
 export async function saveGrid(
     gridData: ISaveGridRequest
 ): Promise<ISaveGridResponse> {
@@ -94,7 +55,6 @@ export async function saveGrid(
             timeout: 10000,
         })
 
-        console.log('✅ [API Client] Grid saved:', response.gridId)
         return response
     } catch (error) {
         console.error('❌ [API Client] Error saving grid:', error)
@@ -102,13 +62,6 @@ export async function saveGrid(
     }
 }
 
-/**
- * Fetch all saved grids from server
- *
- * Hace un GET al API Route /api/grids sin ID para obtener la lista completa
- *
- * @returns Promise with list of saved grids
- */
 export async function getSavedGrids(): Promise<IGetSavedGridsResponse> {
     try {
         const response = await ofetch<IGetSavedGridsResponse>('/api/grids/id', {
@@ -117,7 +70,6 @@ export async function getSavedGrids(): Promise<IGetSavedGridsResponse> {
             timeout: 10000,
         })
 
-        console.log('✅ [API Client] Saved grids fetched:', response.count)
         return response
     } catch (error) {
         console.error('❌ [API Client] Error fetching saved grids:', error)

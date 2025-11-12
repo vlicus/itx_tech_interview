@@ -1,10 +1,5 @@
 'use client'
 
-/**
- * TemplateSelector Component
- * Allows users to assign templates to grid rows
- */
-
 import { Select, SelectItem } from '@heroui/react'
 import { useTemplates } from '@/hooks/api/useTemplates'
 import { Icon } from '@iconify/react'

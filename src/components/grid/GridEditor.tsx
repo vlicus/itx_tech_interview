@@ -22,7 +22,6 @@ export function GridEditor() {
     const selectedRowId = useGridStore((state) => state.selectedRowId)
     const selectRow = useGridStore((state) => state.selectRow)
 
-    // Extract all unique product IDs from rows
     const allProductIds = useMemo(() => {
         const ids = new Set<string>()
         gridRows.forEach((row) => {
@@ -31,14 +30,15 @@ export function GridEditor() {
         return Array.from(ids)
     }, [gridRows])
 
-    // Fetch products using TanStack Query
     const { data: productsData } = useProducts(allProductIds)
     const productCount = productsData?.products?.length || 0
 
     const zoomLevel = useUIStore((state) => state.zoomLevel)
     const isLoading = useUIStore((state) => state.isLoading)
     const isSaving = useUIStore((state) => state.isSaving)
-    const showValidationErrors = useUIStore((state) => state.showValidationErrors)
+    const showValidationErrors = useUIStore(
+        (state) => state.showValidationErrors
+    )
 
     const {
         activeId,

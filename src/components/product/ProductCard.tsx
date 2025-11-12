@@ -1,11 +1,5 @@
 'use client'
 
-/**
- * ProductCard Component
- * Displays a product with image, name, and price
- * Supports drag-and-drop functionality
- */
-
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Card, CardBody, CardFooter, Image, Skeleton } from '@heroui/react'
@@ -65,7 +59,6 @@ export function ProductCard({
                 isDragging && 'opacity-30 scale-95 z-50'
             )}
         >
-            {/* Drag Handle - Top Right Corner */}
             <div
                 ref={setActivatorNodeRef}
                 {...attributes}
@@ -84,8 +77,8 @@ export function ProductCard({
                 <Icon
                     icon="mdi:drag"
                     className={cn(
-                        "w-5 h-5 transition-colors duration-200",
-                        isDragging ? "text-primary-600" : "text-default-600"
+                        'w-5 h-5 transition-colors duration-200',
+                        isDragging ? 'text-primary-600' : 'text-default-600'
                     )}
                 />
             </div>
@@ -95,7 +88,8 @@ export function ProductCard({
                     'w-full transition-all duration-200',
                     'hover:shadow-2xl hover:scale-[1.02]',
                     'shadow-md',
-                    isDragging && 'shadow-2xl ring-4 ring-primary/50 ring-offset-2 scale-105'
+                    isDragging &&
+                        'shadow-2xl ring-4 ring-primary/50 ring-offset-2 scale-105'
                 )}
             >
                 <CardBody className="p-0 relative">
@@ -123,10 +117,6 @@ export function ProductCard({
     )
 }
 
-/**
- * ProductCard Skeleton
- * Loading state for ProductCard
- */
 function ProductCardSkeleton() {
     return (
         <Card className="w-full">

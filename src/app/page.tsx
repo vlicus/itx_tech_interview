@@ -126,7 +126,8 @@ export default function HomePage() {
                                 className="w-12 h-12 text-red-500 mx-auto mb-3"
                             />
                             <p className="text-sm text-neutral-600">
-                                Error al cargar el historial. Intenta recargar la página.
+                                Error al cargar el historial. Intenta recargar
+                                la página.
                             </p>
                         </div>
                     )}
@@ -141,7 +142,8 @@ export default function HomePage() {
                                 No hay parrillas guardadas aún.
                             </p>
                             <p className="text-xs text-neutral-400 mt-1">
-                                Crea y guarda tu primera parrilla para verla aquí.
+                                Crea y guarda tu primera parrilla para verla
+                                aquí.
                             </p>
                         </div>
                     )}
@@ -157,7 +159,10 @@ export default function HomePage() {
                                     <div
                                         className={`flex items-center justify-center w-14 h-14 rounded-lg bg-gray-50 ${grid.accentColor} group-hover:bg-white transition-colors duration-200 border border-neutral-100`}
                                     >
-                                        <Icon icon={grid.icon} className="w-7 h-7" />
+                                        <Icon
+                                            icon={grid.icon}
+                                            className="w-7 h-7"
+                                        />
                                     </div>
 
                                     <div className="space-y-1">
@@ -186,7 +191,8 @@ export default function HomePage() {
 
                 <div className="mt-20 pt-8 border-t border-neutral-100">
                     <p className="text-sm text-neutral-500 leading-relaxed text-center">
-                        La carga inicial de productos se realiza a través de la URL{' '}
+                        La carga inicial de productos se realiza a través de la
+                        URL
                         <span className="text-neutral-400">
                             (máximo 3 productos por fila)
                         </span>

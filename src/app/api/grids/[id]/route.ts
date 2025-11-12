@@ -1,32 +1,18 @@
-/**
- * POST /api/grids
- *
- * Guarda configuración de grid en memoria del servidor.
- * Los datos persisten mientras el servidor esté corriendo.
- */
-
 import { NextRequest, NextResponse } from 'next/server'
 import type { ISaveGridRequest, ISaveGridResponse } from '@/types'
 
-/**
- * In-memory storage para grids guardados
- * Persiste durante la vida del proceso del servidor
- */
 interface StoredGrid {
     id: string
     timestamp: string
     data: ISaveGridRequest
 }
 
-// Storage global en memoria
 const gridsStore = new Map<string, StoredGrid>()
 
 export async function POST(request: NextRequest) {
     try {
-        // Parse request body
         const body: ISaveGridRequest = await request.json()
 
-        // Validar que existe el campo rows
         if (!body.rows || !Array.isArray(body.rows)) {
             return NextResponse.json(
                 {
@@ -37,11 +23,9 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Generar ID único para el grid
         const gridId = crypto.randomUUID()
         const timestamp = new Date().toISOString()
 
-        // Guardar en memoria
         const storedGrid: StoredGrid = {
             id: gridId,
             timestamp,
@@ -49,11 +33,6 @@ export async function POST(request: NextRequest) {
         }
 
         gridsStore.set(gridId, storedGrid)
-
-        console.log(`✅ [API /grids] Grid guardado: ${gridId}`, {
-            rowsCount: body.rows.length,
-            timestamp,
-        })
 
         const response: ISaveGridResponse = {
             success: true,
@@ -77,17 +56,12 @@ export async function POST(request: NextRequest) {
     }
 }
 
-/**
- * GET /api/grids/:id
- * Recupera un grid guardado por su ID
- */
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url)
         const gridId = searchParams.get('id')
 
         if (!gridId) {
-            // Si no hay ID, retornar lista de todos los grids guardados
             const allGrids = Array.from(gridsStore.values())
             return NextResponse.json(
                 {
@@ -98,7 +72,6 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        // Buscar grid específico
         const grid = gridsStore.get(gridId)
 
         if (!grid) {

@@ -1,8 +1,3 @@
-/**
- * GridRowList - Organism Component
- * Renders the list of grid rows with drag-and-drop support
- */
-
 import React from 'react'
 import {
     DndContext,
@@ -23,19 +18,14 @@ import { ProductCard } from '@/components/product/ProductCard'
 import { EmptyGridMessage } from '@/components/molecules'
 import { Card, CardBody, CardHeader, Chip, Button } from '@heroui/react'
 import { Icon } from '@iconify/react'
-import { cn } from '@/utils'
 import { useGridStore } from '@/lib/store'
 import type { IGridRow, IProduct } from '@/types'
 
-/**
- * Active drag item data
- */
 interface ActiveDragItem {
     id: string
     type: 'PRODUCT' | 'ROW'
     product?: IProduct
     rowId?: string
-    // For ROW type
     rowData?: {
         row: IGridRow
         products: IProduct[]
@@ -43,9 +33,6 @@ interface ActiveDragItem {
     }
 }
 
-/**
- * RowDragGhost - Visual representation of a row being dragged
- */
 const RowDragGhost = React.memo(
     ({
         row,
@@ -119,7 +106,7 @@ interface GridRowListProps {
     onDragCancel: () => void
     activeId: string | null
     activeItem: ActiveDragItem | null
-    overId: string | null // Element being hovered over during drag
+    overId: string | null
     zoomLevel: number
     gridRef: React.RefObject<HTMLDivElement | null>
 }
@@ -138,29 +125,23 @@ export const GridRowList = React.memo(
         onDragCancel,
         activeId,
         activeItem,
-        overId, // Element being hovered over
+        overId,
         zoomLevel,
         gridRef,
     }: GridRowListProps) => {
-        // Get addRow action from store
         const addRow = useGridStore((state) => state.addRow)
 
-        // Custom collision detection that prioritizes pointer position
-        // This works better with multiple rows by checking exact pointer location first
         const customCollisionDetection: CollisionDetection = (args) => {
-            // First try pointerWithin - most accurate for user intent
             const pointerCollisions = pointerWithin(args)
             if (pointerCollisions.length > 0) {
                 return pointerCollisions
             }
 
-            // Fallback to rectIntersection for dragging
             const rectCollisions = rectIntersection(args)
             if (rectCollisions.length > 0) {
                 return rectCollisions
             }
 
-            // Final fallback to closestCorners (better than closestCenter for grids)
             return closestCorners(args)
         }
 
@@ -174,7 +155,6 @@ export const GridRowList = React.memo(
                     onDragEnd={onDragEnd}
                     onDragCancel={onDragCancel}
                 >
-                    {/* Grid content with blur effect when dragging */}
                     <div
                         ref={gridRef}
                         style={{
@@ -201,7 +181,7 @@ export const GridRowList = React.memo(
                                         index={index}
                                         isSelected={selectedRowId === row.id}
                                         onSelect={() => onSelectRow(row.id)}
-                                        overId={overId} // Pass overId for manual hover detection
+                                        overId={overId}
                                         validationErrors={
                                             showValidationErrors &&
                                             errorsByRow[row.id]
@@ -215,7 +195,6 @@ export const GridRowList = React.memo(
                             </div>
                         </SortableContext>
 
-                        {/* Add Empty Row Button - Always visible */}
                         <div className="mt-6 flex justify-center">
                             <Button
                                 onPress={addRow}
@@ -233,11 +212,9 @@ export const GridRowList = React.memo(
                             </Button>
                         </div>
 
-                        {/* Empty state */}
                         {rows.length === 0 && <EmptyGridMessage />}
                     </div>
 
-                    {/* DragOverlay - Outside blur effect, always crisp */}
                     <DragOverlay
                         dropAnimation={{
                             duration: 200,
