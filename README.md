@@ -11,15 +11,15 @@
 
 ## 📋 Table of Contents
 
-- [Features](#-features)
-- [Demo](#-demo)
-- [Tech Stack](#️-tech-stack)
-- [Quick Start](#-quick-start)
-- [Project Structure](#-project-structure)
-- [Testing](#-testing)
-- [Architecture](#-architecture)
-- [API Reference](#-api-reference)
-- [Troubleshooting](#-troubleshooting)
+-   [Features](#-features)
+-   [Demo](#-demo)
+-   [Tech Stack](#️-tech-stack)
+-   [Quick Start](#-quick-start)
+-   [Project Structure](#-project-structure)
+-   [Testing](#-testing)
+-   [Architecture](#-architecture)
+-   [API Reference](#-api-reference)
+-   [Troubleshooting](#-troubleshooting)
 
 ---
 
@@ -27,42 +27,47 @@
 
 ### Core Functionality
 
-- **🎯 Drag & Drop System**
-  - Reorder products within rows with smooth animations
-  - Move products between rows with visual feedback
-  - Drag entire rows using grip handles
-  - Intelligent overflow handling and auto-cleanup
+-   **🎯 Drag & Drop System**
 
-- **🎨 Template System**
-  - Three alignment templates: Left, Center, Right
-  - Dynamic template assignment based on product count
-  - Template validation before saving
-  - Visual template selection per row
+    -   Reorder products within rows with smooth animations
+    -   Move products between rows with visual feedback
+    -   Drag entire rows using grip handles
+    -   Intelligent overflow handling and auto-cleanup
 
-- **💾 State Persistence**
-  - Automatic localStorage persistence
-  - Grid history with save/load functionality
-  - Real-time URL synchronization
-  - Shareable grid configurations via URL
+-   **🎨 Template System**
 
-- **✅ Validation System**
-  - Row constraints (1-3 products per row)
-  - Template requirement validation
-  - Real-time error feedback
-  - Toast notifications for user actions
+    -   Three alignment templates: Left, Center, Right
+    -   Dynamic template assignment based on product count
+    -   Template validation before saving
+    -   Visual template selection per row
 
-- **🔍 URL Integration**
-  - Bidirectional URL state sync
-  - Deep linking support
-  - Browser history integration
-  - Shareable grid links
+-   **💾 State Persistence**
 
-- **📱 User Experience**
-  - Responsive design (mobile-optimized)
-  - Touch support for mobile devices
-  - Zoom controls (50%-200%)
-  - Empty state handling
-  - Loading states and error handling
+    -   Automatic localStorage persistence
+    -   Grid history with save/load functionality
+    -   Real-time URL synchronization
+    -   Shareable grid configurations via URL
+
+-   **✅ Validation System**
+
+    -   Row constraints (1-3 products per row)
+    -   Template requirement validation
+    -   Real-time error feedback
+    -   Toast notifications for user actions
+
+-   **🔍 URL Integration**
+
+    -   Bidirectional URL state sync
+    -   Deep linking support
+    -   Browser history integration
+    -   Shareable grid links
+
+-   **📱 User Experience**
+    -   Responsive design (mobile-optimized)
+    -   Touch support for mobile devices
+    -   Zoom controls (50%-200%)
+    -   Empty state handling
+    -   Loading states and error handling
 
 ---
 
@@ -71,9 +76,10 @@
 ### Quick Start Templates
 
 Access pre-configured grid layouts from the home page:
-- 6 Products Grid (2 rows × 3 columns)
-- 4 Products Grid (custom layout)
-- Empty Grid (start from scratch)
+
+-   6 Products Grid (2 rows × 3 columns)
+-   4 Products Grid (custom layout)
+-   Empty Grid (start from scratch)
 
 ### Loading Products
 
@@ -86,6 +92,7 @@ http://localhost:3000/products?ids=[product_1,product_2,product_3]
 **URL Format:** `/products?ids=[id1,id2,id3,...]`
 
 **Examples:**
+
 ```bash
 # Load 3 products
 /products?ids=[product_1,product_2,product_3]
@@ -100,44 +107,51 @@ http://localhost:3000/products?ids=[product_1,product_2,product_3]
 ### Saved Grid History
 
 View and restore previously saved grids from the home page with:
-- Timestamp of creation
-- Row and product count
-- One-click restoration
+
+-   Timestamp of creation
+-   Row and product count
+-   One-click restoration
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Core Framework
-- **[Next.js 15](https://nextjs.org/)** - React framework with App Router
-- **[TypeScript 5](https://www.typescriptlang.org/)** - Type-safe JavaScript
-- **[React 19](https://react.dev/)** - UI library
+
+-   **[Next.js 15](https://nextjs.org/)** - React framework with App Router
+-   **[TypeScript 5](https://www.typescriptlang.org/)** - Type-safe JavaScript
+-   **[React 19](https://react.dev/)** - UI library
 
 ### UI & Styling
-- **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS
-- **[HeroUI](https://heroui.com/)** - Component library (NextUI v2)
-- **[Framer Motion](https://www.framer.com/motion/)** - Animation library
-- **[Iconify React](https://iconify.design/)** - Icon system
-- **[Lucide React](https://lucide.dev/)** - Icon library
+
+-   **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS
+-   **[HeroUI](https://heroui.com/)** - Component library (NextUI v2)
+-   **[Framer Motion](https://www.framer.com/motion/)** - Animation library
+-   **[Iconify React](https://iconify.design/)** - Icon system
+-   **[Lucide React](https://lucide.dev/)** - Icon library
 
 ### State Management
-- **[Zustand 5](https://zustand-demo.pmnd.rs/)** - Lightweight state management
-- **[Immer](https://immerjs.github.io/immer/)** - Immutable state updates
-- **[TanStack Query](https://tanstack.com/query/latest)** - Server state management
+
+-   **[Zustand 5](https://zustand-demo.pmnd.rs/)** - Lightweight state management
+-   **[Immer](https://immerjs.github.io/immer/)** - Immutable state updates
+-   **[TanStack Query](https://tanstack.com/query/latest)** - Server state management
 
 ### Drag & Drop
-- **[@dnd-kit/core](https://dndkit.com/)** - D&D toolkit
-- **[@dnd-kit/sortable](https://dndkit.com/)** - Sortable functionality
-- **[@dnd-kit/utilities](https://dndkit.com/)** - D&D utilities
+
+-   **[@dnd-kit/core](https://dndkit.com/)** - D&D toolkit
+-   **[@dnd-kit/sortable](https://dndkit.com/)** - Sortable functionality
+-   **[@dnd-kit/utilities](https://dndkit.com/)** - D&D utilities
 
 ### Testing
-- **[Vitest](https://vitest.dev/)** - Fast unit test framework
-- **[Happy DOM](https://github.com/capricorn86/happy-dom)** - DOM implementation
-- **[@testing-library/jest-dom](https://testing-library.com/)** - Custom matchers
+
+-   **[Vitest](https://vitest.dev/)** - Fast unit test framework
+-   **[Happy DOM](https://github.com/capricorn86/happy-dom)** - DOM implementation
+-   **[@testing-library/jest-dom](https://testing-library.com/)** - Custom matchers
 
 ### Development Tools
-- **[ESLint](https://eslint.org/)** - Code linting
-- **[Turbopack](https://turbo.build/)** - Fast bundler (Next.js 15)
+
+-   **[ESLint](https://eslint.org/)** - Code linting
+-   **[Turbopack](https://turbo.build/)** - Fast bundler (Next.js 15)
 
 ---
 
@@ -145,8 +159,8 @@ View and restore previously saved grids from the home page with:
 
 ### Prerequisites
 
-- **Node.js** 18.x or higher ([Download](https://nodejs.org/))
-- **npm** 9.x or higher (included with Node.js)
+-   **Node.js** 18.x or higher ([Download](https://nodejs.org/))
+-   **npm** 9.x or higher (included with Node.js)
 
 ### Installation
 
@@ -277,28 +291,30 @@ Duration    ~1.3s
 
 ### Test Files
 
-| File | Tests | Coverage |
-|------|-------|----------|
-| `utils/validation.test.ts` | 23 | Grid validation, error handling |
-| `utils/gridUrlSerializer.test.ts` | 28 | URL parsing, serialization |
-| `utils/formatters.test.ts` | 7 | Data formatting |
-| `lib/store/gridStore.test.ts` | 28 | State management, CRUD |
-| `lib/store/uiStore.test.ts` | 33 | UI state, toasts, zoom |
+| File                              | Tests | Coverage                        |
+| --------------------------------- | ----- | ------------------------------- |
+| `utils/validation.test.ts`        | 23    | Grid validation, error handling |
+| `utils/gridUrlSerializer.test.ts` | 28    | URL parsing, serialization      |
+| `utils/formatters.test.ts`        | 7     | Data formatting                 |
+| `lib/store/gridStore.test.ts`     | 28    | State management, CRUD          |
+| `lib/store/uiStore.test.ts`       | 33    | UI state, toasts, zoom          |
 
 ### Testing Strategy
 
 **Focus:** Unit testing of business logic and state management
 
 ✅ **What we test:**
-- Pure functions (validation, serialization, formatters)
-- Store mutations and side effects
-- Business rules and constraints
-- Edge cases and error conditions
+
+-   Pure functions (validation, serialization, formatters)
+-   Store mutations and side effects
+-   Business rules and constraints
+-   Edge cases and error conditions
 
 ❌ **What we skip:**
-- UI components (logic extracted to hooks/stores)
-- Integration tests (covered by component tests)
-- E2E tests (out of scope)
+
+-   UI components (logic extracted to hooks/stores)
+-   Integration tests (covered by component tests)
+-   E2E tests (out of scope)
 
 ### Running Tests
 
@@ -323,24 +339,28 @@ npm test -- --watch
 ### Design Patterns
 
 **1. Atomic Design**
-- Components organized by complexity (atoms → molecules → organisms)
-- Promotes reusability and maintainability
-- Clear component hierarchy
+
+-   Components organized by complexity (atoms → molecules → organisms)
+-   Promotes reusability and maintainability
+-   Clear component hierarchy
 
 **2. Smart Hooks, Dumb Components**
-- Business logic in custom hooks
-- Components focus on presentation
-- Better testability and separation of concerns
+
+-   Business logic in custom hooks
+-   Components focus on presentation
+-   Better testability and separation of concerns
 
 **3. State Separation**
-- Grid state (Zustand + persistence)
-- UI state (separate store)
-- Server state (TanStack Query)
+
+-   Grid state (Zustand + persistence)
+-   UI state (separate store)
+-   Server state (TanStack Query)
 
 **4. Co-located Tests**
-- Tests placed next to source files
-- Modern approach for better discoverability
-- Easier refactoring
+
+-   Tests placed next to source files
+-   Modern approach for better discoverability
+-   Easier refactoring
 
 ### State Management
 
@@ -391,70 +411,80 @@ Component Re-render
 ### Endpoints
 
 #### GET `/api/products`
+
 Fetch products by IDs.
 
 **Query Parameters:**
-- `ids` (string): Comma-separated product IDs
+
+-   `ids` (string): Comma-separated product IDs
 
 **Response:**
+
 ```json
 {
-  "products": [
-    {
-      "id": "product_1",
-      "name": "Product Name",
-      "thumbnail": "/images/product_1.jpg"
-    }
-  ]
+    "products": [
+        {
+            "id": "product_1",
+            "name": "Product Name",
+            "thumbnail": "/images/product_1.jpg"
+        }
+    ]
 }
 ```
 
 #### GET `/api/templates`
+
 Fetch available templates.
 
 **Response:**
+
 ```json
 {
-  "templates": [
-    {
-      "id": "template_left",
-      "name": "Izquierda",
-      "alignment": "left",
-      "justifyClass": "justify-start"
-    }
-  ]
+    "templates": [
+        {
+            "id": "template_left",
+            "name": "Izquierda",
+            "alignment": "left",
+            "justifyClass": "justify-start"
+        }
+    ]
 }
 ```
 
 #### POST `/api/grids`
+
 Save a grid configuration.
 
 **Request Body:**
+
 ```json
 {
-  "rows": [
-    {
-      "id": "row_1",
-      "productIds": ["product_1", "product_2"],
-      "templateId": "template_left",
-      "order": 0
-    }
-  ]
+    "rows": [
+        {
+            "id": "row_1",
+            "productIds": ["product_1", "product_2"],
+            "templateId": "template_left",
+            "order": 0
+        }
+    ]
 }
 ```
 
 **Response:**
+
 ```json
 {
-  "success": true,
-  "gridId": "grid_1234567890"
+    "success": true,
+    "gridId": "grid_1234567890"
 }
 ```
 
 #### GET `/api/grids`
+
 Fetch saved grids.
 
 **Response:**
+
 ```json
 {
   "grids": [
@@ -476,25 +506,26 @@ Fetch saved grids.
 
 ### Available Templates
 
-| Template ID | Name | Alignment | CSS Class | Use Case |
-|------------|------|-----------|-----------|----------|
-| `template_left` | Izquierda | Left | `justify-start` | 2 products (default) |
-| `template_center` | Centro | Center | `justify-center` | 3 products (default) |
-| `template_right` | Derecha | Right | `justify-end` | 1 product (default) |
-| `template_none` | Ninguna | None | - | ❌ Invalid state |
+| Template ID       | Name      | Alignment | CSS Class        | Use Case             |
+| ----------------- | --------- | --------- | ---------------- | -------------------- |
+| `template_left`   | Izquierda | Left      | `justify-start`  | 2 products (default) |
+| `template_center` | Centro    | Center    | `justify-center` | 3 products (default) |
+| `template_right`  | Derecha   | Right     | `justify-end`    | 1 product (default)  |
+| `template_none`   | Ninguna   | None      | -                | ❌ Invalid state     |
 
 ### Dynamic Template Assignment
 
 New rows automatically receive templates based on product count:
-- **1 product** → Right alignment
-- **2 products** → Left alignment
-- **3 products** → Center alignment
+
+-   **1 product** → Right alignment
+-   **2 products** → Left alignment
+-   **3 products** → Center alignment
 
 ### Validation Rules
 
-- Every row **must** have a template assigned
-- `template_none` is not allowed when saving
-- Template can be manually overridden via dropdown
+-   Every row **must** have a template assigned
+-   `template_none` is not allowed when saving
+-   Template can be manually overridden via dropdown
 
 ---
 
@@ -522,28 +553,29 @@ npm install
 ### Products Not Loading
 
 1. **Check URL format:**
-   ```
-   ✅ Correct: /products?ids=[product_1,product_2]
-   ❌ Wrong:   /products?ids=product_1,product_2
-   ```
+
+    ```
+    ✅ Correct: /products?ids=[product_1,product_2]
+    ❌ Wrong:   /products?ids=product_1,product_2
+    ```
 
 2. **Verify product IDs exist** in the mock data
 
 3. **Check browser console** for API errors
 
 4. **Clear localStorage:**
-   ```javascript
-   // In browser console
-   localStorage.clear();
-   location.reload();
-   ```
+    ```javascript
+    // In browser console
+    localStorage.clear()
+    location.reload()
+    ```
 
 ### State Not Persisting
 
 ```javascript
 // Clear corrupted localStorage
-localStorage.removeItem('product-grid-storage');
-location.reload();
+localStorage.removeItem('product-grid-storage')
+location.reload()
 ```
 
 ### Drag & Drop Not Working
@@ -556,12 +588,12 @@ location.reload();
 
 ## 🔒 Security
 
-- **Environment Variables:** Sensitive data in `.env` (gitignored)
-- **XSS Protection:** React automatic escaping + HeroUI sanitization
-- **CSRF Protection:** Next.js built-in middleware
-- **Type Safety:** Comprehensive TypeScript coverage
-- **Input Validation:** Zod schemas for API inputs
-- **Dependency Audits:** Regular `npm audit` checks
+-   **Environment Variables:** Sensitive data in `.env` (gitignored)
+-   **XSS Protection:** React automatic escaping + HeroUI sanitization
+-   **CSRF Protection:** Next.js built-in middleware
+-   **Type Safety:** Comprehensive TypeScript coverage
+-   **Input Validation:** Zod schemas for API inputs
+-   **Dependency Audits:** Regular `npm audit` checks
 
 ---
 
@@ -569,12 +601,12 @@ location.reload();
 
 ### Optimizations
 
-- **Code Splitting:** Automatic route-based splitting (Next.js)
-- **Image Optimization:** Next.js Image component
-- **Lazy Loading:** Dynamic imports for heavy components
-- **Memoization:** `React.memo` and `useMemo` where needed
-- **Debouncing:** URL updates debounced (300ms)
-- **Virtual Scrolling:** Not needed (small datasets)
+-   **Code Splitting:** Automatic route-based splitting (Next.js)
+-   **Image Optimization:** Next.js Image component
+-   **Lazy Loading:** Dynamic imports for heavy components
+-   **Memoization:** `React.memo` and `useMemo` where needed
+-   **Debouncing:** URL updates debounced (300ms)
+-   **Virtual Scrolling:** Not needed (small datasets)
 
 ### Bundle Size
 
@@ -584,28 +616,29 @@ npm run build
 ```
 
 Key optimizations:
-- Tailwind CSS purging
-- Tree-shaking (ES modules)
-- Minification (Terser)
+
+-   Tailwind CSS purging
+-   Tree-shaking (ES modules)
+-   Minification (Terser)
 
 ---
 
 ## 📈 Future Enhancements
 
-- [ ] Image export optimization (WebP format)
-- [ ] Grid templates library
-- [ ] Collaborative editing (WebSocket)
-- [ ] Advanced filtering and search
-- [ ] Product categorization
-- [ ] Custom template builder
-- [ ] Export to multiple formats (PDF, HTML)
-- [ ] Analytics dashboard
+-   [ ] Image export optimization (WebP format)
+-   [ ] Grid templates library
+-   [ ] Collaborative editing (WebSocket)
+-   [ ] Advanced filtering and search
+-   [ ] Product categorization
+-   [ ] Custom template builder
+-   [ ] Export to multiple formats (PDF, HTML)
+-   [ ] Analytics dashboard
 
 ---
 
 ## 📄 License
 
-This project is part of a technical interview assessment for Inditex.
+This project is part of a technical interview assessment for Acid Tango.
 
 **Status:** Private / Proprietary
 
@@ -613,18 +646,18 @@ This project is part of a technical interview assessment for Inditex.
 
 ## 👥 Author
 
-**Technical Assessment** for Inditex ITX
+**Samuel Cobas Ortiz** for Acid Tango
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **Inditex** - For the technical challenge
-- **Vercel** - Next.js framework and deployment platform
-- **dnd-kit** - Modern drag-and-drop library
-- **Zustand** - Elegant state management
-- **Vitest** - Fast and modern testing framework
-- **HeroUI Team** - Beautiful component library
+-   **Acid Tango** - For the technical challenge
+-   **Vercel** - Next.js framework and deployment platform
+-   **dnd-kit** - Modern drag-and-drop library
+-   **Zustand** - Elegant state management
+-   **Vitest** - Fast and modern testing framework
+-   **HeroUI Team** - Beautiful component library
 
 ---
 
