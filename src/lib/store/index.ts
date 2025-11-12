@@ -4,5 +4,4 @@
  */
 
 export { useGridStore } from './gridStore'
-export { useTemplateStore } from './templateStore'
 export { useUIStore } from './uiStore'

@@ -12,7 +12,10 @@ import { CSS } from '@dnd-kit/utilities'
 import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react'
 import { ProductCard } from '@/components/product/ProductCard'
 import { TemplateSelector } from '@/components/ui/TemplateSelector'
-import { useGridStore, useTemplateStore } from '@/lib/store'
+import { useGridStore } from '@/lib/store'
+import { useProducts } from '@/hooks/api/useProducts'
+import { useTemplates } from '@/hooks/api/useTemplates'
+import { getTemplateById } from '@/utils'
 import { cn } from '@/utils'
 import type { IGridRow, IProduct } from '@/types'
 import { Icon } from '@iconify/react'
@@ -34,14 +37,21 @@ export function GridRow({
     overId, // Element being hovered over during drag
     validationErrors = [],
 }: GridRowProps) {
-    const products = useGridStore((state) => state.products)
+    // Fetch products for this row using TanStack Query
+    const { data: productsData } = useProducts(row.productIds)
+
+    // Fetch templates using TanStack Query
+    const { data: templatesData } = useTemplates()
+    const templates = templatesData?.templates || []
+
     const assignTemplateToRow = useGridStore(
         (state) => state.assignTemplateToRow
     )
     const removeRow = useGridStore((state) => state.removeRow)
-    const getTemplateById = useTemplateStore((state) => state.getTemplateById)
 
-    const template = row.templateId ? getTemplateById(row.templateId) : null
+    const template = row.templateId
+        ? getTemplateById(templates, row.templateId)
+        : null
 
     // Refs for throttling drag over events
     const dragOverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -130,9 +140,18 @@ export function GridRow({
         transition: rowTransition,
     }
 
-    const rowProducts = row.productIds
-        .map((productId) => products[productId])
-        .filter(Boolean) as IProduct[]
+    // Get products from query result
+    const rowProducts = useMemo(() => {
+        if (!productsData?.products) return []
+        // Create a map for faster lookup
+        const productsMap = new Map(
+            productsData.products.map((p) => [p.id, p])
+        )
+        // Map productIds to products, preserving order
+        return row.productIds
+            .map((id) => productsMap.get(id))
+            .filter((p): p is IProduct => p !== undefined)
+    }, [productsData, row.productIds])
 
     // Create sortable IDs for products (must match ProductCard's useSortable id)
     const productSortableIds = row.productIds.map(

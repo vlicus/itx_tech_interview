@@ -39,7 +39,10 @@ export async function getProducts(
             }
         )
 
-        console.log('✅ [API Client] Products fetched:', response.products.length)
+        console.log(
+            '✅ [API Client] Products fetched:',
+            response.products.length
+        )
         return response
     } catch (error) {
         console.error('❌ [API Client] Error fetching products:', error)
@@ -60,7 +63,10 @@ export async function getTemplates(): Promise<IGetTemplatesResponse> {
             timeout: 10000,
         })
 
-        console.log('✅ [API Client] Templates fetched:', response.templates.length)
+        console.log(
+            '✅ [API Client] Templates fetched:',
+            response.templates.length
+        )
         return response
     } catch (error) {
         console.error('❌ [API Client] Error fetching templates:', error)
@@ -71,7 +77,7 @@ export async function getTemplates(): Promise<IGetTemplatesResponse> {
 /**
  * Save grid configuration to server
  *
- * Hace un POST real al API Route /api/grids
+ * Hace un POST real al API Route /api/grids/id
  * Los datos persisten en memoria del servidor
  *
  * @param gridData - Grid configuration to save
@@ -81,7 +87,7 @@ export async function saveGrid(
     gridData: ISaveGridRequest
 ): Promise<ISaveGridResponse> {
     try {
-        const response = await ofetch<ISaveGridResponse>('/api/grids', {
+        const response = await ofetch<ISaveGridResponse>('/api/grids/id', {
             method: 'POST',
             body: gridData,
             retry: 1,
@@ -105,7 +111,7 @@ export async function saveGrid(
  */
 export async function getSavedGrids(): Promise<IGetSavedGridsResponse> {
     try {
-        const response = await ofetch<IGetSavedGridsResponse>('/api/grids', {
+        const response = await ofetch<IGetSavedGridsResponse>('/api/grids/id', {
             method: 'GET',
             retry: 1,
             timeout: 10000,

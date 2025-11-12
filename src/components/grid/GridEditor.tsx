@@ -1,15 +1,16 @@
 'use client'
 
+import { useMemo } from 'react'
 import { Spinner } from '@heroui/react'
 import { useGridStore, useUIStore } from '@/lib/store'
 import { useHydration } from '@/hooks/useHydration'
 import { useGridDragAndDrop, useGridOperations, useGridData } from '@/hooks'
+import { useProducts } from '@/hooks/api/useProducts'
 import { GridToolbar } from '@/components/molecules'
 import { GridRowList } from '@/components/organisms'
-import type { IGridRow, IProduct } from '@/types'
+import type { IGridRow } from '@/types'
 
 const EMPTY_ROWS: IGridRow[] = []
-const EMPTY_PRODUCTS: Record<string, IProduct> = {}
 
 export function GridEditor() {
     const isHydrated = useHydration()
@@ -17,11 +18,22 @@ export function GridEditor() {
     useGridData(isHydrated)
 
     const storeRows = useGridStore((state) => state.rows)
-    const storeProducts = useGridStore((state) => state.products)
     const gridRows = storeRows || EMPTY_ROWS
-    const gridProducts = storeProducts || EMPTY_PRODUCTS
     const selectedRowId = useGridStore((state) => state.selectedRowId)
     const selectRow = useGridStore((state) => state.selectRow)
+
+    // Extract all unique product IDs from rows
+    const allProductIds = useMemo(() => {
+        const ids = new Set<string>()
+        gridRows.forEach((row) => {
+            row.productIds.forEach((id) => ids.add(id))
+        })
+        return Array.from(ids)
+    }, [gridRows])
+
+    // Fetch products using TanStack Query
+    const { data: productsData } = useProducts(allProductIds)
+    const productCount = productsData?.products?.length || 0
 
     const zoomLevel = useUIStore((state) => state.zoomLevel)
     const isLoading = useUIStore((state) => state.isLoading)
@@ -56,7 +68,7 @@ export function GridEditor() {
         <div className="w-full min-h-screen bg-linear-to-br from-default-50 via-white to-default-100">
             <GridToolbar
                 rowCount={gridRows.length}
-                productCount={Object.keys(gridProducts).length}
+                productCount={productCount}
                 onSave={handleSave}
                 isSaving={isSaving}
                 isValid={validation.isValid}

@@ -23,10 +23,10 @@ export interface IGridRow {
 
 /**
  * Complete grid state
+ * Note: Products are managed by TanStack Query, not stored here
  */
 export interface IGridState {
     rows: IGridRow[]
-    products: Record<string, IProduct> // Product lookup by ID
     selectedRowId: string | null
 }
 

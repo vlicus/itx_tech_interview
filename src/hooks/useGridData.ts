@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useGridStore, useTemplateStore, useUIStore } from '@/lib/store'
-import { getProducts, getTemplates } from '@/lib/api'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useGridStore, useUIStore } from '@/lib/store'
+import { useProducts } from './api/useProducts'
+import { useTemplates } from './api/useTemplates'
 import { usePathname, useRouter } from 'next/navigation'
 import {
     parseGridFromURL,
@@ -15,69 +16,64 @@ interface UseGridDataReturn {
 
 export function useGridData(hydrated: boolean): UseGridDataReturn {
     const [isInitialLoad, setIsInitialLoad] = useState(true)
+    const [shouldLoadFromURL, setShouldLoadFromURL] = useState(false)
+    const [gridConfig, setGridConfig] = useState<ParsedGridConfig | null>(null)
     const pathname = usePathname()
     const router = useRouter()
 
     // Grid store
     const rows = useGridStore((state) => state.rows)
-    const setProducts = useGridStore((state) => state.setProducts)
     const addRowWithProducts = useGridStore((state) => state.addRowWithProducts)
     const addRow = useGridStore((state) => state.addRow)
     const resetGrid = useGridStore((state) => state.resetGrid)
-    const cleanOrphanProducts = useGridStore((state) => state.cleanOrphanProducts)
-
-    // Template store
-    const setTemplates = useTemplateStore((state) => state.setTemplates)
-    const setTemplatesLoading = useTemplateStore((state) => state.setLoading)
 
     // UI store
     const isLoading = useUIStore((state) => state.isLoading)
     const setLoading = useUIStore((state) => state.setLoading)
     const addToast = useUIStore((state) => state.addToast)
 
-    const loadInitialData = useCallback(async () => {
-        setLoading(true)
-        setTemplatesLoading(true)
+    // Parse URL to extract product IDs
+    const productIdsToFetch = useMemo(() => {
+        if (!shouldLoadFromURL || !gridConfig) return []
+        return gridConfig.productIds
+    }, [shouldLoadFromURL, gridConfig])
 
-        try {
-            const templatesResponse = await getTemplates()
-            setTemplates(templatesResponse.templates)
+    // ✅ Use TanStack Query hooks for data fetching
+    // Templates are fetched automatically (preloaded in layout or eagerly loaded)
+    useTemplates()
 
-            const urlParams = new URLSearchParams(window.location.search)
-            const gridConfig = parseGridFromURL(urlParams)
+    const {
+        data: productsData,
+        isLoading: productsLoading,
+        isError: productsError,
+    } = useProducts(productIdsToFetch)
 
-            if (!gridConfig) {
-                resetGrid()
-                addRow()
-                setLoading(false)
-                setTemplatesLoading(false)
-                return
-            }
+    // Set up grid when products are loaded
+    useEffect(() => {
+        if (!shouldLoadFromURL) return
+        if (!gridConfig) return
 
-            if (!validateGridConfig(gridConfig)) {
-                addToast({
-                    type: 'error',
-                    message: 'Invalid grid configuration in URL',
-                })
-                setLoading(false)
-                setTemplatesLoading(false)
-                return
-            }
+        // Wait for products to load
+        if (productsLoading) {
+            setLoading(true)
+            return
+        }
 
-            const { productIds, type, rows: rowConfigs } = gridConfig
+        // Handle errors
+        if (productsError) {
+            addToast({
+                type: 'error',
+                message: 'Failed to load products',
+            })
+            setLoading(false)
+            setShouldLoadFromURL(false)
+            setIsInitialLoad(false)
+            return
+        }
 
-            if (productIds.length === 0) {
-                addToast({
-                    type: 'info',
-                    message: 'No product IDs found in URL',
-                })
-                setLoading(false)
-                setTemplatesLoading(false)
-                return
-            }
-
-            const productsResponse = await getProducts(productIds)
-            const fetchedProducts = productsResponse.products
+        // Products loaded successfully
+        if (productsData?.products) {
+            const fetchedProducts = productsData.products
 
             if (fetchedProducts.length === 0) {
                 addToast({
@@ -85,14 +81,18 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
                     message: 'No products found for the given IDs',
                 })
                 setLoading(false)
-                setTemplatesLoading(false)
+                setShouldLoadFromURL(false)
+                setIsInitialLoad(false)
                 return
             }
 
+            // Reset grid and set up rows
             resetGrid()
-            setProducts(fetchedProducts)
+
+            const { type, rows: rowConfigs } = gridConfig
 
             if (type === 'full' && rowConfigs) {
+                // Full grid configuration with templates
                 for (const rowConfig of rowConfigs) {
                     const validProductIds = rowConfig.productIds.filter((id) =>
                         fetchedProducts.some((p) => p.id === id)
@@ -116,6 +116,7 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
                     message: `Loaded shared grid: ${fetchedProducts.length} products in ${rowConfigs.length} rows`,
                 })
             } else {
+                // Simple ID list - create rows of 3 products each
                 for (let i = 0; i < fetchedProducts.length; i += 3) {
                     const rowProducts = fetchedProducts.slice(
                         i,
@@ -132,42 +133,83 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
                     message: `Loaded ${fetchedProducts.length} products in ${rowCount} rows`,
                 })
             }
+
+            setLoading(false)
+            setShouldLoadFromURL(false)
+            setIsInitialLoad(false)
+        }
+    }, [
+        shouldLoadFromURL,
+        gridConfig,
+        productsData,
+        productsLoading,
+        productsError,
+        resetGrid,
+        addRowWithProducts,
+        addToast,
+        setLoading,
+    ])
+
+    const loadInitialData = useCallback(async () => {
+        setLoading(true)
+
+        try {
+            const urlParams = new URLSearchParams(window.location.search)
+            const parsedConfig = parseGridFromURL(urlParams)
+
+            if (!parsedConfig) {
+                // No URL params - start with empty grid
+                resetGrid()
+                addRow()
+                setLoading(false)
+                setIsInitialLoad(false)
+                return
+            }
+
+            if (!validateGridConfig(parsedConfig)) {
+                addToast({
+                    type: 'error',
+                    message: 'Invalid grid configuration in URL',
+                })
+                setLoading(false)
+                setIsInitialLoad(false)
+                return
+            }
+
+            if (parsedConfig.productIds.length === 0) {
+                addToast({
+                    type: 'info',
+                    message: 'No product IDs found in URL',
+                })
+                setLoading(false)
+                setIsInitialLoad(false)
+                return
+            }
+
+            // Set config and trigger loading
+            setGridConfig(parsedConfig)
+            setShouldLoadFromURL(true)
         } catch (error) {
             console.error('[useGridData] Error loading data:', error)
             addToast({
                 type: 'error',
                 message: 'Failed to load data from URL',
             })
-        } finally {
             setLoading(false)
-            setTemplatesLoading(false)
+            setIsInitialLoad(false)
         }
-    }, [
-        setProducts,
-        addRowWithProducts,
-        addRow,
-        resetGrid,
-        setTemplates,
-        addToast,
-        setLoading,
-        setTemplatesLoading,
-    ])
+    }, [addRow, resetGrid, addToast, setLoading])
 
     // Initialize data from URL parameters
     useEffect(() => {
-        if (hydrated) {
-            loadInitialData().then(() => {
-                setIsInitialLoad(false)
-            })
+        if (hydrated && isInitialLoad) {
+            loadInitialData()
         }
-    }, [hydrated, loadInitialData])
+    }, [hydrated, isInitialLoad, loadInitialData])
 
     // Sync URL with current grid state (when rows change)
     useEffect(() => {
         if (isInitialLoad || !hydrated || isLoading) return
-
-        // Clean orphan products first (products not in any row)
-        cleanOrphanProducts()
 
         const allProductIds: string[] = []
         rows.forEach((row) => {
@@ -189,7 +231,7 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
             console.log('🔄 [URL SYNC] No products, clearing URL params')
             router.replace(pathname, { scroll: false })
         }
-    }, [rows, hydrated, isLoading, isInitialLoad, pathname, router, cleanOrphanProducts])
+    }, [rows, hydrated, isLoading, isInitialLoad, pathname, router])
 
     return {
         isInitialLoad,

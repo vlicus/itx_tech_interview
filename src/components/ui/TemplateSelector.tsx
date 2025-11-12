@@ -6,7 +6,7 @@
  */
 
 import { Select, SelectItem } from '@heroui/react'
-import { useTemplateStore } from '@/lib/store'
+import { useTemplates } from '@/hooks/api/useTemplates'
 import { Icon } from '@iconify/react'
 
 interface TemplateSelectorProps {
@@ -24,8 +24,8 @@ export function TemplateSelector({
     disabled = false,
     className = '',
 }: TemplateSelectorProps) {
-    const templates = useTemplateStore((state) => state.templates)
-    const isLoading = useTemplateStore((state) => state.isLoading)
+    const { data: templatesData, isLoading } = useTemplates()
+    const templates = templatesData?.templates || []
 
     const handleSelectionChange = (keys: 'all' | Set<React.Key>) => {
         if (keys !== 'all' && keys.size > 0) {

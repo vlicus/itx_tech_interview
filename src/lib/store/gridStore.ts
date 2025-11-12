@@ -26,11 +26,6 @@ function getDefaultTemplateForProductCount(productCount: number): string {
  * Grid actions interface
  */
 interface IGridActions {
-    // Product management
-    setProducts: (products: IProduct[]) => void
-    addProduct: (product: IProduct) => void
-    cleanOrphanProducts: () => void
-
     // Row management
     addRow: () => void
     addRowWithProducts: (productIds: string[]) => void
@@ -73,7 +68,6 @@ type TGridStore = IGridState & IGridActions
  */
 const initialState: IGridState = {
     rows: [],
-    products: {},
     selectedRowId: null,
 }
 
@@ -84,71 +78,6 @@ export const useGridStore = create<TGridStore>()(
     persist(
         (set) => ({
                 ...initialState,
-
-                // Product management
-                setProducts: (products) =>
-                    set(
-                        produce((state: IGridState) => {
-                            console.log(
-                                '🟢 [STORE] setProducts llamado con',
-                                products.length,
-                                'productos'
-                            )
-                            console.log(
-                                '🟢 [STORE] state antes de setProducts:',
-                                state
-                            )
-
-                            products.forEach((product) => {
-                                state.products[product.id] = product
-                            })
-                            console.log(
-                                '🟢 [STORE] state.products después de setProducts:',
-                                Object.keys(state.products).length,
-                                'productos'
-                            )
-                        })
-                    ),
-
-                addProduct: (product) =>
-                    set(
-                        produce((state: IGridState) => {
-                            state.products[product.id] = product
-                        })
-                    ),
-
-                cleanOrphanProducts: () =>
-                    set(
-                        produce((state: IGridState) => {
-                            // Collect all product IDs currently in rows
-                            const activeProductIds = new Set<string>()
-                            state.rows.forEach((row) => {
-                                row.productIds.forEach((productId) => {
-                                    activeProductIds.add(productId)
-                                })
-                            })
-
-                            // Remove products that are not in any row (orphan products)
-                            const allProductIds = Object.keys(state.products)
-                            const orphanIds = allProductIds.filter(
-                                (id) => !activeProductIds.has(id)
-                            )
-
-                            if (orphanIds.length > 0) {
-                                console.log(
-                                    '🧹 [STORE] Cleaning orphan products:',
-                                    orphanIds
-                                )
-                                orphanIds.forEach((id) => {
-                                    delete state.products[id]
-                                })
-                                console.log(
-                                    '✅ [STORE] Products after cleanup:',
-                                    Object.keys(state.products).length
-                                )
-                            }
-                        })
-                    ),
 
                 // Row management
                 addRow: () =>
@@ -385,15 +314,12 @@ export const useGridStore = create<TGridStore>()(
                                 '🟢 [STORE] resetGrid llamado - ANTES:',
                                 {
                                     rows: state.rows.length,
-                                    products: Object.keys(state.products)
-                                        .length,
                                 }
                             )
                             state.rows = []
-                            state.products = {}
                             state.selectedRowId = null
                             console.log(
-                                '🟢 [STORE] resetGrid completado - DESPUÉS: rows=0, products=0'
+                                '🟢 [STORE] resetGrid completado - DESPUÉS: rows=0'
                             )
                         })
                     ),
@@ -403,7 +329,6 @@ export const useGridStore = create<TGridStore>()(
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => ({
                 rows: state.rows,
-                products: state.products,
                 selectedRowId: state.selectedRowId,
             }),
         }

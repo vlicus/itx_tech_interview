@@ -1,78 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useGridStore } from './gridStore'
-import type { IProduct, IGridRow } from '@/types'
 
 describe('gridStore', () => {
     beforeEach(() => {
         useGridStore.getState().resetGrid()
-    })
-
-    describe('Product Management', () => {
-        it('should set products in store', () => {
-            const products: IProduct[] = [
-                { id: 'p1', name: 'Product 1', thumbnail: 'thumb1.jpg' },
-                { id: 'p2', name: 'Product 2', thumbnail: 'thumb2.jpg' },
-            ]
-
-            useGridStore.getState().setProducts(products)
-
-            const storeProducts = useGridStore.getState().products
-
-            expect(Object.keys(storeProducts)).toHaveLength(2)
-            expect(storeProducts['p1']).toEqual(products[0])
-            expect(storeProducts['p2']).toEqual(products[1])
-        })
-
-        it('should add a single product to store', () => {
-            const product: IProduct = {
-                id: 'p1',
-                name: 'Product 1',
-                thumbnail: 'thumb1.jpg',
-            }
-
-            useGridStore.getState().addProduct(product)
-
-            const storeProducts = useGridStore.getState().products
-
-            expect(Object.keys(storeProducts)).toHaveLength(1)
-            expect(storeProducts['p1']).toEqual(product)
-        })
-
-        it('should clean orphan products not in any row', () => {
-            const products: IProduct[] = [
-                { id: 'p1', name: 'Product 1', thumbnail: 'thumb1.jpg' },
-                { id: 'p2', name: 'Product 2', thumbnail: 'thumb2.jpg' },
-                { id: 'p3', name: 'Product 3', thumbnail: 'thumb3.jpg' },
-            ]
-
-            useGridStore.getState().setProducts(products)
-            useGridStore.getState().addRowWithProducts(['p1'])
-
-            useGridStore.getState().cleanOrphanProducts()
-
-            const storeProducts = useGridStore.getState().products
-
-            expect(Object.keys(storeProducts)).toHaveLength(1)
-            expect(storeProducts['p1']).toBeDefined()
-            expect(storeProducts['p2']).toBeUndefined()
-            expect(storeProducts['p3']).toBeUndefined()
-        })
-
-        it('should keep all products when all are in rows', () => {
-            const products: IProduct[] = [
-                { id: 'p1', name: 'Product 1', thumbnail: 'thumb1.jpg' },
-                { id: 'p2', name: 'Product 2', thumbnail: 'thumb2.jpg' },
-            ]
-
-            useGridStore.getState().setProducts(products)
-            useGridStore.getState().addRowWithProducts(['p1', 'p2'])
-
-            useGridStore.getState().cleanOrphanProducts()
-
-            const storeProducts = useGridStore.getState().products
-
-            expect(Object.keys(storeProducts)).toHaveLength(2)
-        })
     })
 
     describe('Row Management', () => {
@@ -393,12 +324,6 @@ describe('gridStore', () => {
 
     describe('Grid Reset', () => {
         it('should reset grid to initial state', () => {
-            const products: IProduct[] = [
-                { id: 'p1', name: 'Product 1', thumbnail: 'thumb1.jpg' },
-                { id: 'p2', name: 'Product 2', thumbnail: 'thumb2.jpg' },
-            ]
-
-            useGridStore.getState().setProducts(products)
             useGridStore.getState().addRowWithProducts(['p1', 'p2'])
             useGridStore.getState().addRow()
 
@@ -410,7 +335,6 @@ describe('gridStore', () => {
             const state = useGridStore.getState()
 
             expect(state.rows).toHaveLength(0)
-            expect(Object.keys(state.products)).toHaveLength(0)
             expect(state.selectedRowId).toBeNull()
         })
 

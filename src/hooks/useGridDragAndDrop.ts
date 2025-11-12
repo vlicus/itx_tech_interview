@@ -2,7 +2,7 @@
  * useGridDragAndDrop Hook
  * Handles all drag-and-drop logic for rows and products
  */
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import {
     useSensors,
     useSensor,
@@ -11,6 +11,7 @@ import {
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { useGridStore, useUIStore } from '@/lib/store'
+import { useProducts } from './api/useProducts'
 import type { DragStartEvent, DragEndEvent, DragOverEvent } from '@dnd-kit/core'
 import type { TDragData, IProduct } from '@/types'
 
@@ -52,7 +53,6 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
 
     // Grid store
     const rows = useGridStore((state) => state.rows)
-    const products = useGridStore((state) => state.products)
     const moveRow = useGridStore((state) => state.moveRow)
     const moveProductBetweenRows = useGridStore(
         (state) => state.moveProductBetweenRows
@@ -63,6 +63,29 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
 
     // UI store for toasts
     const addToast = useUIStore((state) => state.addToast)
+
+    // Extract all product IDs from all rows
+    const allProductIds = useMemo(() => {
+        const ids = new Set<string>()
+        rows.forEach((row) => {
+            row.productIds.forEach((id) => ids.add(id))
+        })
+        return Array.from(ids)
+    }, [rows])
+
+    // Fetch all products using TanStack Query
+    const { data: productsData } = useProducts(allProductIds)
+
+    // Create products map for quick lookup
+    const productsMap = useMemo(() => {
+        const map = new Map<string, IProduct>()
+        if (productsData?.products) {
+            productsData.products.forEach((product) => {
+                map.set(product.id, product)
+            })
+        }
+        return map
+    }, [productsData])
 
     // Drag and drop sensors
     const sensors = useSensors(
@@ -88,7 +111,7 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
 
         // Capture active item data for DragOverlay
         if (activeData.type === 'PRODUCT') {
-            const product = products[activeData.productId]
+            const product = productsMap.get(activeData.productId)
             setActiveItem({
                 id: event.active.id as string,
                 type: 'PRODUCT',
@@ -100,8 +123,8 @@ export function useGridDragAndDrop(): UseGridDragAndDropReturn {
             const row = rows.find((r) => r.id === activeData.rowId)
             if (row) {
                 const rowProducts = row.productIds
-                    .map((productId) => products[productId])
-                    .filter(Boolean) as IProduct[]
+                    .map((productId) => productsMap.get(productId))
+                    .filter((p): p is IProduct => p !== undefined)
 
                 setActiveItem({
                     id: event.active.id as string,
