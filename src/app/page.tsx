@@ -27,11 +27,11 @@ export default function HomePage() {
             accentColor: 'text-pink-600',
         },
         {
-            id: 'template-empty',
-            title: 'Empty Grid',
-            description: 'Start from a blank grid',
+            id: 'template-4-empty',
+            title: '4 Products Grid',
+            description: '2-row layout (3+1)',
             icon: 'heroicons:square-3-stack-3d-20-solid',
-            url: '/products',
+            url: '/products?ids=[product_1,product_2,product_3,product_4]',
             accentColor: 'text-gray-600',
         },
     ]
