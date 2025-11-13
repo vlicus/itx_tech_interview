@@ -14,6 +14,9 @@ export interface IGetProductsRequest {
  */
 export interface IGetProductsResponse {
     products: IProduct[]
+    notFoundIds?: string[]
+    requestedCount?: number
+    foundCount?: number
 }
 
 /**

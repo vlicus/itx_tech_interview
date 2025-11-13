@@ -42,7 +42,6 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(response, { status: 201 })
     } catch (error) {
-        console.error(' [API /grids] Error saving grid:', error)
         return NextResponse.json(
             {
                 success: false,
@@ -83,7 +82,6 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(grid, { status: 200 })
     } catch (error) {
-        console.error('❌ [API /grids] Error retrieving grid:', error)
         return NextResponse.json(
             { error: 'Failed to retrieve grid' },
             { status: 500 }

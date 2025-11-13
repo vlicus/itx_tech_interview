@@ -24,7 +24,6 @@ export async function getProducts(
 
         return response
     } catch (error) {
-        console.error('❌ [API Client] Error fetching products:', error)
         throw new Error('Failed to fetch products from API')
     }
 }
@@ -39,7 +38,6 @@ export async function getTemplates(): Promise<IGetTemplatesResponse> {
 
         return response
     } catch (error) {
-        console.error('❌ [API Client] Error fetching templates:', error)
         throw new Error('Failed to fetch templates from API')
     }
 }
@@ -57,7 +55,6 @@ export async function saveGrid(
 
         return response
     } catch (error) {
-        console.error('❌ [API Client] Error saving grid:', error)
         throw new Error('Failed to save grid to API')
     }
 }
@@ -72,7 +69,6 @@ export async function getSavedGrids(): Promise<IGetSavedGridsResponse> {
 
         return response
     } catch (error) {
-        console.error('❌ [API Client] Error fetching saved grids:', error)
         throw new Error('Failed to fetch saved grids from API')
     }
 }

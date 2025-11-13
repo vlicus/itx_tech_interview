@@ -63,13 +63,29 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
             return
         }
 
-        if (productsData?.products) {
-            const fetchedProducts = productsData.products
+        if (productsData) {
+            const fetchedProducts = productsData.products || []
+            const notFoundIds = productsData.notFoundIds || []
+
+            // Mostrar aviso si hay productos no encontrados
+            if (notFoundIds.length > 0) {
+                const idsText = notFoundIds.slice(0, 3).join(', ')
+                const moreText =
+                    notFoundIds.length > 3
+                        ? ` y ${notFoundIds.length - 3} más`
+                        : ''
+
+                addToast({
+                    type: 'warning',
+                    message: `Productos no encontrados: ${idsText}${moreText}`,
+                })
+            }
 
             if (fetchedProducts.length === 0) {
                 addToast({
-                    type: 'warning',
-                    message: 'No products found for the given IDs',
+                    type: 'error',
+                    message:
+                        'No se encontró ningún producto con los IDs proporcionados',
                 })
                 setLoading(false)
                 setShouldLoadFromURL(false)
@@ -82,6 +98,8 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
             const { type, rows: rowConfigs } = gridConfig
 
             if (type === 'full' && rowConfigs) {
+                let loadedRowsCount = 0
+
                 for (const rowConfig of rowConfigs) {
                     const validProductIds = rowConfig.productIds.filter((id) =>
                         fetchedProducts.some((p) => p.id === id)
@@ -89,6 +107,7 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
 
                     if (validProductIds.length > 0) {
                         addRowWithProducts(validProductIds)
+                        loadedRowsCount++
 
                         const currentRows = useGridStore.getState().rows
                         const lastRow = currentRows[currentRows.length - 1]
@@ -106,9 +125,14 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
                     }
                 }
 
+                const successMessage =
+                    notFoundIds.length > 0
+                        ? `Cargados ${fetchedProducts.length} de ${gridConfig.productIds.length} productos en ${loadedRowsCount} filas`
+                        : `Cargados ${fetchedProducts.length} productos en ${loadedRowsCount} filas`
+
                 addToast({
                     type: 'success',
-                    message: `Loaded shared grid: ${fetchedProducts.length} products in ${rowConfigs.length} rows`,
+                    message: successMessage,
                 })
             } else {
                 for (let i = 0; i < fetchedProducts.length; i += 3) {
@@ -121,10 +145,14 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
                 }
 
                 const rowCount = Math.ceil(fetchedProducts.length / 3)
+                const successMessage =
+                    notFoundIds.length > 0
+                        ? `Cargados ${fetchedProducts.length} de ${gridConfig.productIds.length} productos en ${rowCount} filas`
+                        : `Cargados ${fetchedProducts.length} productos en ${rowCount} filas`
 
                 addToast({
                     type: 'success',
-                    message: `Loaded ${fetchedProducts.length} products in ${rowCount} rows`,
+                    message: successMessage,
                 })
             }
 
@@ -182,7 +210,6 @@ export function useGridData(hydrated: boolean): UseGridDataReturn {
             setGridConfig(parsedConfig)
             setShouldLoadFromURL(true)
         } catch (error) {
-            console.error('[useGridData] Error loading data:', error)
             addToast({
                 type: 'error',
                 message: 'Failed to load data from URL',

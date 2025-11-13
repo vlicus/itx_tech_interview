@@ -10,17 +10,27 @@ export async function GET(request: NextRequest) {
         const allProducts = productsData.products as IProduct[]
 
         let products: IProduct[]
+        let notFoundIds: string[] = []
 
         if (idsParam) {
             const requestedIds = idsParam.split(',').map((id) => id.trim())
             products = allProducts.filter((product) =>
                 requestedIds.includes(product.id)
             )
+
+            // Identificar IDs que no se encontraron
+            const foundIds = products.map((p) => p.id)
+            notFoundIds = requestedIds.filter((id) => !foundIds.includes(id))
         } else {
             products = allProducts
         }
 
-        const response: IGetProductsResponse = { products }
+        const response: IGetProductsResponse = {
+            products,
+            notFoundIds: notFoundIds.length > 0 ? notFoundIds : undefined,
+            requestedCount: idsParam ? idsParam.split(',').length : undefined,
+            foundCount: products.length,
+        }
 
         return NextResponse.json(response, {
             status: 200,
@@ -30,7 +40,6 @@ export async function GET(request: NextRequest) {
             },
         })
     } catch (error) {
-        console.error('Error loading products:', error)
         return NextResponse.json(
             { error: 'Failed to load products' },
             { status: 500 }
